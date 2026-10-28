@@ -31,7 +31,9 @@
   const PASTELS = ['#ffb3c8', '#ffd98a', '#a8ecc8', '#a9d8ff', '#cdbcff', '#ffc99a', '#ffffff'];
 
   const BODY_OPTS = { restitution: 0.32, friction: 0.35, frictionStatic: 0.6, frictionAir: 0.014, label: 'item' };
-  const PART_OPTS = { density: 0.0012 };
+  const PART_OPTS = { density: 0.0012, slop: 0.01 };
+  const OUTLINE = 2.5;                       // demi-épaisseur du contour (unités de dessin)
+  const STICKER = 2;                         // liseré blanc visible (unités monde)
 
   // ---------------------------------------------------------------- thèmes
   const THEMES = {
@@ -229,7 +231,7 @@
 
   // -------------------------------------------------------------- monde
   function createWorld() {
-    engine = Engine.create({ positionIterations: 10, velocityIterations: 8 });
+    engine = Engine.create({ positionIterations: 20, velocityIterations: 14 });
     engine.gravity.y = 1.35;
     const W = 80, top = -700;
     const wallOpts = { isStatic: true, label: 'wall', friction: 0.3, restitution: 0.2 };
@@ -243,14 +245,19 @@
     Events.on(engine, 'collisionActive', e => onCollision(e, false));
   }
 
-  /** Corps composé (boîtes à coins arrondis + cercles) épousant le dessin. */
+  /**
+   * Corps composé (boîtes à coins arrondis + cercles) épousant le dessin.
+   * Chaque pièce est gonflée du contour et du liseré pour que deux armes se
+   * touchent physiquement là où leurs dessins se touchent, sans chevauchement.
+   */
   function makeBody(level, ox, oy, k) {
     const it = ITEMS[level], s = it.scale * k;
+    const pad = (OUTLINE * it.scale + STICKER) * k;
     const parts = it.hit.map(h => {
-      if (h[0] === 'c') return Bodies.circle(ox + h[1] * s, oy + h[2] * s, h[3] * s, PART_OPTS);
+      if (h[0] === 'c') return Bodies.circle(ox + h[1] * s, oy + h[2] * s, h[3] * s + pad, PART_OPTS);
       const [, x, y, w, hh, ch, ang = 0] = h;
-      const pw = w * s, ph = hh * s;
-      const radius = Math.max(0.5, Math.min(ch * s, Math.min(pw, ph) / 2 - 0.2));
+      const pw = w * s + 2 * pad, ph = hh * s + 2 * pad;
+      const radius = Math.max(0.5, Math.min(ch * s + pad, Math.min(pw, ph) / 2 - 0.2));
       const p = Bodies.rectangle(ox + (x + w / 2) * s, oy + (y + hh / 2) * s, pw, ph,
         Object.assign({ chamfer: { radius } }, PART_OPTS));
       if (ang) Body.rotate(p, ang * Math.PI / 180);
@@ -415,8 +422,8 @@
   }
 
   const clampAim = (x, lvl) => {
-    const g = geo(lvl);
-    return Math.max(TANK_L + g.hw + 1, Math.min(TANK_R - g.hw - 1, x));
+    const g = geo(lvl), pad = OUTLINE * ITEMS[lvl].scale + STICKER;
+    return Math.max(TANK_L + g.hw + pad + 1, Math.min(TANK_R - g.hw - pad - 1, x));
   };
 
   function drop() {
@@ -1536,6 +1543,13 @@
     drop, start, newGame, usePower,
     aim(x) { dropper.tx = x; },
     spawn(level, x, y, angle) { return addItem(level, x, y, { center: true, angle }); },
+    /** Interpénétration entre armes (px monde) : la plus forte et la moyenne. */
+    contacts() {
+      const d = engine.pairs.list
+        .filter(p => p.isActive && items.has(p.bodyA.parent.id) && items.has(p.bodyB.parent.id))
+        .map(p => p.collision.depth);
+      return { n: d.length, max: d.length ? Math.max(...d) : 0, avg: d.length ? d.reduce((a, b) => a + b, 0) / d.length : 0 };
+    },
     items() { return [...items.values()].map(it => ({ level: it.level, x: it.body.position.x, y: it.body.position.y, a: it.body.angle })); }
   };
 

@@ -64,16 +64,12 @@
   const shine = (x, y, w, h, rot = -20, op = 0.55) =>
     `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${h}" fill="#fff" opacity="${op}" transform="rotate(${rot} ${x} ${y})"/>`;
 
-  /** Étincelle à 4 branches. */
-  const sparkle = (x, y, r, fill = '#fff') =>
-    `<path d="M${x} ${y - r} Q${x + r * 0.18} ${y - r * 0.18} ${x + r} ${y} Q${x + r * 0.18} ${y + r * 0.18} ${x} ${y + r} Q${x - r * 0.18} ${y + r * 0.18} ${x - r} ${y} Q${x - r * 0.18} ${y - r * 0.18} ${x} ${y - r}Z" fill="${fill}" stroke="${OL}" stroke-width="2"/>`;
-
   // ----------------------------------------------------------------- armes
   const ITEMS = [
     {
       name: 'Munition 9mm', short: '9mm', size: 46,
       lore: 'La plus petite de la bande… et la plus rapide à s’énerver. Elle adore rouler sous les meubles et se cacher dans les poches.',
-      hit: [['r', -36, -6, 72, 64, 12], ['c', 0, -30, 30]],
+      hit: [['r', -32, -6, 64, 58, 14], ['r', -36, 44, 72, 14, 6], ['r', -30, -30, 60, 32, 6], ['c', 0, -36, 27]],
       art: c => `
         <path d="M-30 -2 C-30 -40 -14 -60 0 -62 C14 -60 30 -40 30 -2 Z" ${st('#ec8b5e')}/>
         ${shine(-12, -34, 6, 14, 20, 0.6)}
@@ -85,7 +81,7 @@
     {
       name: 'Flashbang', short: 'Flash', size: 58,
       lore: 'Timide, elle cligne des yeux sans arrêt et rougit dès qu’on la regarde. Quand elle éclate de rire… tout le monde est ébloui.',
-      hit: [['r', -34, -36, 68, 88, 20], ['r', -26, -50, 52, 18, 6], ['r', 30, -40, 12, 60, 5]],
+      hit: [['r', -34, -36, 68, 88, 20], ['r', -26, -50, 52, 18, 6], ['r', 12, -56, 30, 15, 7], ['r', 30, -32, 18, 62, 8, 8], ['c', -30, -52, 16], ['c', 36, -38, 12]],
       art: c => `
         <path d="M14 -48 q30 0 28 30 l-6 44" ${line(14)}/>
         <path d="M14 -48 q30 0 28 30 l-6 44" ${line(7, '#d5dae3')}/>
@@ -104,7 +100,7 @@
     {
       name: 'Glock', short: 'Glock', size: 74,
       lore: 'Compact, fiable, toujours à l’heure. Il range ses munitions par couleur et fait la sieste dans les étuis.',
-      hit: [['r', -58, -48, 118, 62, 16], ['r', -54, -6, 48, 66, 12], ['r', -12, 0, 32, 28, 10]],
+      hit: [['r', -58, -48, 118, 42, 18], ['r', -54, -12, 98, 20, 8], ['r', -54, -6, 48, 66, 12], ['r', -19, -2, 46, 36, 14]],
       art: c => `
         <path d="M-50 -6 L-14 -6 L-6 46 Q-6 60 -20 60 L-40 60 Q-54 60 -54 46 Z" ${st('#545878')}/>
         <path d="M-44 14 l18 0 M-43 26 l20 0 M-42 38 l21 0" ${line(3, '#3f425c')}/>
@@ -121,7 +117,7 @@
     {
       name: 'Revolver Magnum', short: 'Magnum', size: 92,
       lore: 'Il fait tourner son gros barillet quand il réfléchit et raconte toujours la même histoire de cow-boy. Personne n’ose l’interrompre.',
-      hit: [['c', -6, -14, 34], ['r', -44, -44, 66, 50, 14], ['r', 18, -38, 66, 34, 10], ['r', -51, -1, 40, 64, 14, 12]],
+      hit: [['c', -6, -14, 34], ['r', -44, -44, 66, 50, 14], ['r', 18, -38, 66, 34, 10], ['r', -55, -4, 50, 72, 15, 10], ['r', -62, -54, 30, 28, 10], ['r', 70, -52, 18, 16, 4], ['r', -21, -4, 46, 34, 14]],
       art: c => `
         <path d="M-40 -2 Q-56 30 -50 56 Q-46 66 -32 64 L-18 62 Q-6 60 -10 46 Q-16 22 -4 0 Z" ${st('#cf8d5c')}/>
         <path d="M-36 14 q-6 18 -4 36" ${line(3.5, '#a86a40')}/>
@@ -143,8 +139,7 @@
     {
       name: 'MP5', short: 'MP5', size: 110,
       lore: 'Hyperactif, il mitraille des blagues à toute vitesse. S’il garde sa crosse rentrée, c’est pour faire des câlins plus serrés.',
-      hit: [['r', -44, -38, 86, 40, 14], ['r', 6, -44, 56, 12, 5], ['r', 34, -28, 48, 24, 10],
-            ['r', -68, -36, 24, 44, 7], ['r', 13, -5, 20, 58, 8, -19], ['r', -31, -6, 26, 50, 9, 8]],
+      hit: [['r', -44, -38, 86, 40, 14], ['r', 6, -44, 56, 12, 5], ['r', 34, -28, 48, 24, 10], ['r', -68, -36, 24, 44, 7], ['r', 9.5, -8, 27, 60, 9, -21], ['r', -33, -6, 28, 50, 9, 8], ['c', -34, -40, 10]],
       art: c => `
         <path d="M4 -4 Q8 28 24 52 L42 42 Q28 22 24 -4 Z" ${st('#414c5d')}/>
         <path d="M-28 -6 L-8 -6 L-4 34 Q-6 44 -16 44 L-26 44 Q-34 42 -32 32 Z" ${st('#414c5d')}/>
@@ -161,8 +156,7 @@
     {
       name: 'HK416', short: 'HK416', size: 132,
       lore: 'Premier de la classe, il range son paquetage au millimètre. Son chargeur banane ? Il jure que c’est son goûter.',
-      hit: [['r', -40, -32, 74, 34, 12], ['r', 30, -28, 58, 24, 9], ['r', -78, -28, 42, 42, 12],
-            ['r', -18, -52, 34, 22, 8], ['r', 3, 0, 22, 54, 8, -20], ['r', -33, -2, 24, 44, 8, 5]],
+      hit: [['r', -40, -32, 74, 34, 12], ['r', 30, -28, 58, 24, 9], ['r', -78, -28, 42, 42, 12], ['r', -18, -52, 34, 22, 8], ['r', -1, -2, 28, 56, 9, -18], ['r', -33, -2, 24, 44, 8, 5]],
       art: c => `
         <path d="M-6 0 Q-4 30 12 54 L32 44 Q18 22 18 0 Z" ${st('#6f5c48')}/>
         <path d="M-1 14 l16 -2 M3 26 l16 -3 M9 38 l15 -4" ${line(3, '#57473a')}/>
@@ -182,7 +176,7 @@
     {
       name: 'Fusil à pompe M4', short: 'Pompe', size: 152,
       lore: 'Un grand cœur sous des airs bourrus. Il collectionne les cartouches rouges comme des bonbons et refuse de les partager.',
-      hit: [['r', -40, -38, 58, 40, 14], ['r', 8, -36, 80, 38, 11], ['r', -80, -30, 44, 54, 14], ['r', -33, 0, 26, 42, 9, 5]],
+      hit: [['r', -40, -38, 58, 40, 14], ['r', 8, -36, 80, 42, 11], ['r', -80, -30, 44, 54, 14], ['r', -34, -2, 30, 46, 10, 5], ['r', -35, -52, 20, 16, 5]],
       art: c => `
         <path d="M-38 -30 L-66 -22 Q-80 -18 -80 -6 L-80 14 Q-78 24 -66 22 L-38 6 Z" ${st('#4b4f63')}/>
         ${[-70, -61, -52].map(x =>
@@ -203,8 +197,7 @@
     {
       name: 'Sniper .50 BMG', short: '.50 BMG', size: 172,
       lore: 'Elle peut patienter des heures sans bouger… pour admirer les étoiles dans sa lunette géante. Ne la réveillez pas.',
-      hit: [['r', -82, -26, 106, 36, 12], ['r', 18, -16, 48, 12, 5], ['r', 62, -26, 30, 32, 10],
-            ['r', -48, -66, 100, 36, 15], ['r', -33, 4, 24, 38, 8, 5], ['r', -10, 4, 22, 22, 5], ['r', 24, 0, 34, 42, 6]],
+      hit: [['r', -84, -27, 108, 40, 12], ['r', 18, -16, 48, 12, 5], ['r', 62, -26, 30, 32, 10], ['r', -48, -66, 100, 36, 15], ['r', -35, 2, 30, 44, 10, 5], ['r', -10, 4, 22, 22, 5], ['r', 27, -5, 10, 46, 4, 15], ['r', 44, -5, 10, 46, 4, -17.6]],
       art: c => `
         <path d="M38 -4 L26 40 M42 -4 L56 40" ${line(6)}/>
         <rect x="-78" y="-22" width="42" height="32" rx="12" ${st('#6d7f58')}/>
@@ -229,8 +222,7 @@
     {
       name: 'Minigun', short: 'Minigun', size: 190,
       lore: 'Quand il est content, ses canons se mettent à tourner tout seuls. Il est TRÈS souvent content.',
-      hit: [['r', -64, -38, 66, 62, 20], ['r', -4, -40, 78, 58, 10], ['r', -76, -22, 16, 36, 7],
-            ['r', -74, 36, 46, 24, 10], ['r', -56, -56, 46, 20, 9]],
+      hit: [['r', -64, -38, 66, 62, 20], ['r', -4, -40, 78, 58, 10], ['r', -76, -22, 16, 36, 7], ['r', -46, 18, 22, 40, 10, 18], ['r', -80, 40, 48, 24, 11, -12], ['r', -56, -56, 46, 20, 9]],
       art: c => `
         <path d="M-30 22 Q-40 52 -70 56" ${line(18)}/>
         <path d="M-30 22 Q-40 52 -70 56" ${line(10, '#8b6b4a')}/>
@@ -252,7 +244,7 @@
     {
       name: 'RPG-7', short: 'RPG-7', size: 220,
       lore: 'Sa tête toute ronde déborde d’idées explosives. Son rêve secret : devenir une montgolfière.',
-      hit: [['r', -90, -15, 124, 30, 10], ['c', 65, 0, 34], ['r', -64, 4, 24, 38, 8], ['r', -32, 4, 24, 34, 8]],
+      hit: [['r', -90, -15, 124, 30, 10], ['c', 65, 0, 34], ['r', -64, 4, 24, 38, 8], ['r', -32, 4, 24, 34, 8], ['r', -93, -21, 22, 42, 6], ['r', -39, -29, 16, 18, 4], ['r', 94, -9, 15, 18, 4]],
       art: c => `
         <path d="M-56 4 L-42 4 L-40 34 Q-42 42 -50 42 L-56 42 Q-64 40 -62 32 Z" ${st('#5a6b4a')}/>
         <path d="M-24 4 L-10 4 L-8 30 Q-10 38 -18 38 L-24 38 Q-32 36 -30 28 Z" ${st('#5a6b4a')}/>
@@ -270,7 +262,7 @@
     {
       name: 'Mini-Tank Graal', short: 'Graal', size: 280,
       lore: 'Le légendaire mini-tank. Il porte une couronne un peu trop petite et le sait très bien. C’est le plus câlin de tout l’arsenal.',
-      hit: [['r', -82, 8, 164, 44, 22], ['r', -78, -18, 158, 32, 10], ['c', 0, -26, 44], ['r', 26, -53, 68, 24, 7], ['r', -20, -96, 40, 26, 8]],
+      hit: [['r', -82, 8, 164, 44, 22], ['r', -78, -18, 158, 32, 10], ['c', 0, -24, 46], ['r', 26, -53, 68, 24, 7], ['r', -22, -104, 44, 32, 9]],
       art: c => `
         <rect x="26" y="-48" width="58" height="14" rx="7" ${st('#7aa25f')}/>
         <rect x="80" y="-53" width="14" height="24" rx="5" ${st('#5f8548')}/>
@@ -284,7 +276,6 @@
           `<circle cx="${x}" cy="30" r="11" ${st('#a9aec0', 4)}/><circle cx="${x}" cy="30" r="3.5" fill="${OL}"/>`
         ).join('')}
         <path d="M58 -14 l3 7 l7 1 l-5 5 l1 7 l-6 -3 l-6 3 l1 -7 l-5 -5 l7 -1 z" fill="#ff9fbd" stroke="${OL}" stroke-width="2.5" stroke-linejoin="round"/>
-        ${sparkle(-34, -84, 7, '#fff6b0')}${sparkle(50, -76, 6)}
         ${shine(-24, -52, 12, 6, -30, 0.6)}
         ${face(-2, -36, 1.25, c, 'grin')}`
     }
