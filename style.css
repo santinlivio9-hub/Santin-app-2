@@ -978,6 +978,63 @@ button { font-family: inherit; color: inherit; }
 .share-preview:not([src]) { display: none; }
 .btn.share { min-height: 46px; font-size: 17px; }
 
+/* ------------------------------------------------- Menu admin secret */
+.pin-panel { width: min(300px, 100%); }
+.pin-panel.wrong { animation: pin-shake .4s; }
+@keyframes pin-shake { 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+.pin-dots { display: flex; gap: 12px; margin: 4px 0 6px; }
+.pin-dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink-soft); transition: background .15s, transform .15s; }
+.pin-dots i.on { background: var(--accent); border-color: var(--accent); transform: scale(1.15); }
+.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.pin-pad button {
+  height: 56px;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 18px;
+  background: var(--tile);
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 3px 0 var(--edge);
+}
+.pin-pad button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--edge); }
+.pin-pad .pin-alt { font-size: 14px; color: var(--ink-soft); }
+
+.admin-panel { width: min(380px, 100%); gap: 10px; text-align: left; }
+.admin-panel h2 { align-self: center; }
+.admin-panel fieldset {
+  width: 100%;
+  margin: 0;
+  padding: 8px 12px 12px;
+  border: 1.5px dashed var(--glass-border);
+  border-radius: 16px;
+  background: var(--tile);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-panel legend { padding: 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.adm-row { display: flex; gap: 8px; }
+.adm-row > * { flex: 1; }
+.admin-panel input[type=number], .admin-panel select {
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .85);
+  color: #3d2c4e;
+  font: 600 16px var(--font);
+}
+.btn-mini.wide { width: 100%; justify-content: center; }
+.adm-row .btn-mini { justify-content: center; }
+.btn-mini:disabled { opacity: .45; cursor: default; }
+.btn-mini.danger { color: #fff; background: linear-gradient(180deg, #ff7a7a, #e23b4e); box-shadow: 0 3px 0 #a11f30; }
+.adm-slider { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 14px; font-weight: 600; }
+.adm-slider b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.adm-slider input { width: 100%; accent-color: var(--accent); }
+
 /* ---------------------------------------------------------- Thèmes */
 .theme-list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
 .theme-card {

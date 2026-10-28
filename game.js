@@ -32,6 +32,8 @@
   const PASTELS = ['#ffb3c8', '#ffd98a', '#a8ecc8', '#a9d8ff', '#cdbcff', '#ffc99a', '#ffffff'];
 
   const BODY_OPTS = { restitution: 0.32, friction: 0.35, frictionStatic: 0.6, frictionAir: 0.014, label: 'item' };
+  // Réglages physiques modifiables depuis le menu admin (non sauvegardés).
+  const tuning = { gravity: 1.35, restitution: BODY_OPTS.restitution };
   const PART_OPTS = { density: 0.0012, slop: 0.01 };
   const OUTLINE = 2.5;                       // demi-épaisseur du contour (unités de dessin)
   const STICKER = 2;                         // liseré blanc visible (unités monde)
@@ -270,7 +272,7 @@
   // -------------------------------------------------------------- monde
   function createWorld() {
     engine = Engine.create({ positionIterations: 20, velocityIterations: 14 });
-    engine.gravity.y = 1.35;
+    engine.gravity.y = tuning.gravity;
     const W = 80, top = -700;
     const wallOpts = { isStatic: true, label: 'wall', friction: 0.3, restitution: 0.2 };
     const h = TANK_B + W - top;
@@ -1234,7 +1236,7 @@
       else if (e.key === 'x') usePower('shake');
       else if (e.key === 'Escape' || e.key === 'p') { if (targeting) setTargeting(false); else pause(); }
     } else if (e.key === 'Escape') {
-      if (current === 'codex' || current === 'shop') closePanel();
+      if (PANELS.includes(current)) closePanel();
       else if (state === 'pause') resume();
     }
   });
@@ -1367,8 +1369,10 @@
   // --------------------------------------------------------------- menus
   const overlays = {
     start: $('menu-start'), pause: $('menu-pause'), over: $('menu-over'),
-    codex: $('menu-codex'), shop: $('menu-shop')
+    codex: $('menu-codex'), shop: $('menu-shop'), pin: $('menu-pin'), admin: $('menu-admin')
   };
+  // Panneaux secondaires : ils mettent la partie en pause et y reviennent à la fermeture.
+  const PANELS = ['codex', 'shop', 'pin', 'admin'];
   let current = null, returnTo = null, resumeAfter = false;
 
   function showOverlay(name) {
@@ -1381,7 +1385,7 @@
 
   /** Ouvre un panneau secondaire (codex, thèmes) en mettant la partie en pause. */
   function openPanel(name) {
-    if (current !== 'codex' && current !== 'shop') {
+    if (!PANELS.includes(current)) {
       returnTo = current;
       resumeAfter = state === 'play';
     }
@@ -1407,7 +1411,7 @@
   }
 
   Object.values(overlays).forEach(el => el.addEventListener('click', e => {
-    if (e.target === el && (current === 'codex' || current === 'shop')) closePanel();
+    if (e.target === el && PANELS.includes(current)) closePanel();
   }));
 
   function start() {
@@ -1730,6 +1734,136 @@
       A.resume();
     }
   });
+
+  // ---------------------------------------------------- menu admin secret
+  // Accès : 3 taps rapides sur la carte du score ou sur le titre, puis code PIN.
+  // Le PIN est vérifié côté client : il protège des curieux, pas d'un vrai attaquant.
+  const ADMIN_PIN = '210707';
+  let pin = '', taps = [];
+
+  function secretTap() {
+    const now = performance.now();
+    taps = taps.filter(t => now - t < 650);
+    taps.push(now);
+    if (taps.length >= 3) { taps = []; openPin(); }
+  }
+  $('score-box').addEventListener('click', secretTap);
+  document.querySelector('.title').addEventListener('click', secretTap);
+
+  function openPin() {
+    pin = '';
+    renderPin();
+    openPanel('pin');
+  }
+
+  function renderPin() {
+    [...$('pin-dots').children].forEach((d, i) => d.classList.toggle('on', i < pin.length));
+  }
+
+  function pinKey(k) {
+    if (k === 'del') pin = pin.slice(0, -1);
+    else if (pin.length < 6) pin += k;
+    Haptics.pulse(8);
+    renderPin();
+    if (pin.length < 6) return;
+    if (pin === ADMIN_PIN) {
+      setTimeout(() => { renderAdmin(); showOverlay('admin'); }, 150);
+    } else {
+      const pad = $('pin-panel');
+      pad.classList.remove('wrong');
+      void pad.offsetWidth;
+      pad.classList.add('wrong');
+      Haptics.pulse([40, 40, 40]);
+      setTimeout(() => { pin = ''; renderPin(); }, 400);
+    }
+  }
+  document.querySelectorAll('#pin-pad button').forEach(b => b.addEventListener('click', () => pinKey(b.dataset.k)));
+  $('pin-cancel').addEventListener('click', closePanel);
+
+  function renderAdmin() {
+    $('adm-coins').value = store.data.coins;
+    $('adm-score').value = score;
+    $('adm-best').value = store.data.best || 0;
+    $('adm-gravity').value = tuning.gravity;
+    $('adm-rest').value = tuning.restitution;
+    $('adm-gravity-v').textContent = tuning.gravity.toFixed(2);
+    $('adm-rest-v').textContent = tuning.restitution.toFixed(2);
+    const sel = $('adm-weapon');
+    if (!sel.options.length) ITEMS.forEach((it, i) => sel.add(new Option(`${i + 1}. ${it.name}`, i)));
+    const inGame = !!items && (state === 'play' || state === 'pause');
+    document.querySelectorAll('.adm-ingame').forEach(b => { b.disabled = !inGame; });
+  }
+
+  const admDone = msg => { A.click(); toast(null, msg, 'shop'); renderAdmin(); };
+  const setCoins = n => {
+    store.data.coins = Math.max(0, Math.min(999999999, Math.floor(n) || 0));
+    store.save();
+    updateCoins(true);
+    admDone('Solde : ' + store.data.coins.toLocaleString('fr-FR') + ' douilles');
+  };
+  $('adm-coins-apply').addEventListener('click', () => setCoins(+$('adm-coins').value));
+  $('adm-coins-10k').addEventListener('click', () => setCoins(store.data.coins + 10000));
+  $('adm-coins-max').addEventListener('click', () => setCoins(999999));
+  $('adm-unlock').addEventListener('click', () => {
+    store.data.ownedThemes = [...THEME_ORDER];
+    store.data.ownedSkins = [...SKIN_ORDER];
+    store.save();
+    updateCoins();
+    admDone('Boutique entièrement débloquée');
+  });
+  $('adm-weapon-now').addEventListener('click', () => {
+    dropper.level = +$('adm-weapon').value;
+    dropper.ready = true;
+    dropper.appear = 0;
+    markReached(dropper.level);
+    admDone('En main : ' + ITEMS[dropper.level].name);
+  });
+  $('adm-weapon-next').addEventListener('click', () => {
+    nextLevel = +$('adm-weapon').value;
+    markReached(nextLevel);
+    updateNext();
+    admDone('Suivant : ' + ITEMS[nextLevel].name);
+  });
+  $('adm-score-apply').addEventListener('click', () => {
+    score = shownScore = Math.max(0, Math.floor(+$('adm-score').value) || 0);
+    updateHUD(true);
+    updatePowers();
+    admDone('Score : ' + score.toLocaleString('fr-FR'));
+  });
+  $('adm-best-apply').addEventListener('click', () => {
+    store.data.best = Math.max(0, Math.floor(+$('adm-best').value) || 0);
+    store.save();
+    updateHUD(true);
+    $('start-best').textContent = store.data.best;
+    admDone('Record : ' + store.data.best.toLocaleString('fr-FR'));
+  });
+  const setGravity = g => {
+    tuning.gravity = g;
+    if (engine) engine.gravity.y = g;
+    $('adm-gravity').value = g;
+    $('adm-gravity-v').textContent = g.toFixed(2);
+  };
+  $('adm-gravity').addEventListener('input', e => setGravity(+e.target.value));
+  $('adm-grav-normal').addEventListener('click', () => { setGravity(1.35); A.click(); });
+  $('adm-grav-moon').addEventListener('click', () => { setGravity(0.22); A.click(); });
+  $('adm-rest').addEventListener('input', e => {
+    tuning.restitution = BODY_OPTS.restitution = +e.target.value;
+    if (items) for (const it of items.values()) it.body.restitution = tuning.restitution;
+    $('adm-rest-v').textContent = tuning.restitution.toFixed(2);
+  });
+  $('adm-clear').addEventListener('click', () => {
+    if (!items) return;
+    for (const it of [...items.values()]) removeItem(it);
+    dangerT = 0;
+    admDone('Cuve nettoyée');
+  });
+  $('adm-reset').addEventListener('click', () => {
+    if (!confirm('Effacer toute la progression (record, douilles, achats, codex) ?')) return;
+    try { localStorage.removeItem(STORE_KEY); } catch (e) { /* ignore */ }
+    store.save = store.saveSoon = () => {};    // empêche la sauvegarde de réécrire les données
+    location.reload();
+  });
+  $('adm-close').addEventListener('click', closePanel);
 
   // ---------------------------------------------------------- démarrage
   function initStartScreen() {

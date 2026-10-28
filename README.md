@@ -61,6 +61,9 @@ Touchez une arme de la barre d'évolution pour ouvrir sa fiche carte postale : a
 ## Vibrations
 `navigator.vibrate` sur Android (15 ms au lâcher, double impulsion de 40 ms à la fusion). Safari iOS n'implémente pas cette API : le jeu utilise à la place le retour haptique natif des interrupteurs (iOS 18+), en mode « au mieux » : il dépend de la version d'iOS et peut ne pas se déclencher hors d'un geste du joueur.
 
+## Menu développeur
+Un menu admin caché (accès par geste secret + code PIN, voir `game.js`) permet de régler les douilles, tout débloquer, forcer l'arme en main ou suivante, modifier score et record, ajuster gravité et rebond en direct, vider la cuve et remettre la sauvegarde à zéro. Le code est vérifié dans le navigateur : il protège des curieux, pas d'une personne qui lit le code source.
+
 ## Structure
 
 ```

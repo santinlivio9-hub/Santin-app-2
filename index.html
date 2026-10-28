@@ -226,6 +226,54 @@
     </div>
   </section>
 
+  <!-- Accès développeur : pavé PIN (aucun bouton visible, voir game.js) -->
+  <section class="overlay" id="menu-pin" aria-hidden="true">
+    <div class="glass panel pin-panel" id="pin-panel">
+      <h2>Accès restreint</h2>
+      <div class="pin-dots" id="pin-dots" aria-label="Code PIN à 6 chiffres"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="pin-pad" id="pin-pad">
+        <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button><button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button><button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button><button type="button" id="pin-cancel" class="pin-alt">Annuler</button><button type="button" data-k="0">0</button><button type="button" data-k="del" class="pin-alt" aria-label="Effacer">⌫</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="overlay" id="menu-admin" aria-hidden="true">
+    <div class="glass panel admin-panel">
+      <h2>Console admin</h2>
+      <fieldset>
+        <legend>Douilles d'Or</legend>
+        <div class="adm-row"><input type="number" id="adm-coins" min="0" inputmode="numeric"><button class="btn-mini buy" id="adm-coins-apply" type="button">Appliquer</button></div>
+        <div class="adm-row"><button class="btn-mini select" id="adm-coins-10k" type="button">+10 000</button><button class="btn-mini select" id="adm-coins-max" type="button">Max (999 999)</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Boutique</legend>
+        <button class="btn-mini buy wide" id="adm-unlock" type="button">Tout débloquer (thèmes + finitions)</button>
+      </fieldset>
+      <fieldset>
+        <legend>Spawner</legend>
+        <select id="adm-weapon" aria-label="Arme à forcer"></select>
+        <div class="adm-row"><button class="btn-mini select adm-ingame" id="adm-weapon-now" type="button">Mettre en main</button><button class="btn-mini select adm-ingame" id="adm-weapon-next" type="button">Mettre en « Suivant »</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Score</legend>
+        <div class="adm-row"><input type="number" id="adm-score" min="0" inputmode="numeric" aria-label="Score actuel"><button class="btn-mini select adm-ingame" id="adm-score-apply" type="button">Score actuel</button></div>
+        <div class="adm-row"><input type="number" id="adm-best" min="0" inputmode="numeric" aria-label="Record"><button class="btn-mini select" id="adm-best-apply" type="button">Record</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Physique (temps réel)</legend>
+        <label class="adm-slider">Gravité <b id="adm-gravity-v"></b><input type="range" id="adm-gravity" min="0.1" max="3" step="0.05"></label>
+        <div class="adm-row"><button class="btn-mini select" id="adm-grav-normal" type="button">Normale</button><button class="btn-mini select" id="adm-grav-moon" type="button">Lunaire</button></div>
+        <label class="adm-slider">Rebond (restitution) <b id="adm-rest-v"></b><input type="range" id="adm-rest" min="0" max="0.95" step="0.01"></label>
+        <button class="btn-mini select wide adm-ingame" id="adm-clear" type="button">Nettoyer la cuve</button>
+      </fieldset>
+      <fieldset>
+        <legend>Données</legend>
+        <button class="btn-mini danger wide" id="adm-reset" type="button">Reset total du jeu</button>
+      </fieldset>
+      <button class="btn ghost" id="adm-close">Fermer</button>
+    </div>
+  </section>
+
   <!-- Matter.js via CDN (jsDelivr, version figée) + copie locale de secours -->
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
   <script>window.Matter || document.write('<script src="vendor/matter.min.js"><\/script>');</script>
