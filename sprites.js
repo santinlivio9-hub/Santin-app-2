@@ -20,37 +20,93 @@
     return '#' + ((1 << 24) | (f(n >> 16) << 16) | (f((n >> 8) & 255) << 8) | f(n & 255)).toString(16).slice(1);
   }
 
+  const mix = (a, b, t) => {
+    const p = parseInt(a.slice(1), 16), q = parseInt(b.slice(1), 16);
+    const c = sh => Math.round(((p >> sh) & 255) * (1 - t) + ((q >> sh) & 255) * t);
+    return '#' + ((1 << 24) | (c(16) << 16) | (c(8) << 8) | c(0)).toString(16).slice(1);
+  };
+  const luma = hex => {
+    const n = parseInt(hex.slice(1), 16);
+    return (0.3 * (n >> 16) + 0.59 * ((n >> 8) & 255) + 0.11 * (n & 255)) / 255;
+  };
+
   // Dégradés utilisés pendant la construction d'un SVG (null = couleurs à plat).
-  let grads = null;
+  let grads = null, skin = 'classic';
   const paint = hex => {
     if (!grads || hex[0] !== '#') return hex;
-    const id = 'g' + hex.slice(1);
     grads.add(hex);
-    return `url(#${id})`;
+    return `url(#g${hex.slice(1)})`;
   };
-  /** Volume "jouet vinyle" : haut éclairé, bas dans l'ombre, liseré de lumière. */
-  const gradDefs = () => [...grads].map(hex => `
-    <linearGradient id="g${hex.slice(1)}" x1="0" y1="0" x2="0.25" y2="1">
-      <stop offset="0" stop-color="${shade(hex, 0.55)}"/>
-      <stop offset="0.18" stop-color="${shade(hex, 0.22)}"/>
-      <stop offset="0.55" stop-color="${hex}"/>
-      <stop offset="0.86" stop-color="${shade(hex, -0.22)}"/>
-      <stop offset="1" stop-color="${shade(hex, -0.38)}"/>
-    </linearGradient>`).join('');
+
+  /** Dégradé vertical à 5 arrêts. */
+  const linear = (id, stops) => `<linearGradient id="${id}" x1="0" y1="0" x2="0.25" y2="1">` +
+    stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join('') + '</linearGradient>';
+
+  /** Volume "jouet vinyle" : haut éclairé, bas dans l'ombre. */
+  const vinyl = (id, hex) => linear(id, [[0, shade(hex, 0.55)], [0.18, shade(hex, 0.22)], [0.55, hex], [0.86, shade(hex, -0.22)], [1, shade(hex, -0.38)]]);
+
+  /** Finitions : classique (couleur signature), camo urbain, plaqué or. */
+  const gradDefs = () => [...grads].map(hex => {
+    const id = 'g' + hex.slice(1);
+    if (skin === 'gold') {
+      // Or poli : bandes de reflets métalliques, plus clair là où la pièce l'était.
+      const g = shade('#f2b51d', (luma(hex) - 0.5) * 0.7);
+      return linear(id, [[0, '#fffbe6'], [0.2, shade(g, 0.45)], [0.42, g], [0.55, shade(g, -0.3)], [0.7, shade(g, 0.25)], [1, shade(g, -0.45)]]);
+    }
+    if (skin === 'camo') {
+      // Camo urbain teinté de la couleur de l'arme (on la reconnaît toujours).
+      const base = mix(hex, '#8d939c', 0.5);
+      const dark = shade(base, -0.42), pale = mix(base, '#eef1f5', 0.55);
+      const blobs = [
+        [dark, 'M.05 .15C.2 .05 .35 .2 .3 .35S.1 .45 .05 .3Z'],
+        [pale, 'M.45 .05C.6 0 .75 .12 .68 .25S.45 .3 .45 .05Z'],
+        [dark, 'M.6 .45C.8 .38 .95 .55 .88 .7S.62 .72 .6 .45Z'],
+        [pale, 'M.15 .6C.3 .52 .45 .65 .38 .8S.12 .82 .15 .6Z'],
+        ['#3b4048', 'M.4 .38C.5 .32 .58 .42 .52 .5S.38 .5 .4 .38Z'],
+        ['#3b4048', 'M.78 .1C.88 .06 .97 .16 .9 .24S.75 .2 .78 .1Z'],
+        [pale, 'M.62 .82C.75 .76 .88 .86 .8 .96S.6 .95 .62 .82Z']
+      ];
+      return vinyl('b' + hex.slice(1), base) +
+        `<pattern id="${id}" width="1" height="1" patternContentUnits="objectBoundingBox">` +
+        `<rect width="1" height="1" fill="url(#b${hex.slice(1)})"/>` +
+        blobs.map(([c, d]) => `<path d="${d}" fill="${c}" opacity=".62"/>`).join('') +
+        `<rect width="1" height=".35" fill="#fff" opacity=".12"/></pattern>`;
+    }
+    return vinyl(id, hex);
+  }).join('');
 
   const st = (fill, w = SW) =>
     `fill="${paint(fill)}" stroke="${OL}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
   const line = (w = SW, color = OL) =>
     `fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"`;
 
-  /** Visage kawaii : yeux brillants, joues roses, bouche. */
-  function face(x, y, s, closed, mouth = 'smile') {
+  /**
+   * Visage kawaii. `v` = expression : 0 yeux ouverts, 1 clignement,
+   * 2 écrasé (> <), 3 yeux écarquillés (gros choc).
+   */
+  function face(x, y, s, v, mouth = 'smile') {
+    v = v === true ? 1 : (v || 0);
     const ex = 12 * s;
     let eyes;
-    if (closed) {
+    if (v === 1) {
       eyes = [-1, 1].map(k =>
         `<path d="M${x + k * ex - 6.5 * s} ${y} q${6.5 * s} ${5 * s} ${13 * s} 0" ${line(3.6 * s)}/>`
       ).join('');
+    } else if (v === 2) {
+      // > <
+      eyes = [-1, 1].map(k => {
+        const cx = x + k * ex, d = -k * 5.5 * s;
+        return `<path d="M${cx - d} ${y - 6 * s} L${cx + d} ${y} L${cx - d} ${y + 6 * s}" ${line(3.8 * s)}/>`;
+      }).join('');
+      mouth = 'wobble';
+    } else if (v === 3) {
+      eyes = [-1, 1].map(k => {
+        const cx = x + k * ex;
+        return `<ellipse cx="${cx}" cy="${y}" rx="${7.8 * s}" ry="${9.4 * s}" fill="#fff" stroke="${OL}" stroke-width="${2.6 * s}"/>` +
+          `<circle cx="${cx}" cy="${y + 0.5 * s}" r="${3.4 * s}" fill="${OL}"/>` +
+          `<circle cx="${cx - 1.2 * s}" cy="${y - 0.8 * s}" r="${1.1 * s}" fill="#fff"/>`;
+      }).join('');
+      mouth = 'o';
     } else {
       eyes = [-1, 1].map(k => {
         const cx = x + k * ex;
@@ -67,6 +123,12 @@
     switch (mouth) {
       case 'open':
         m = `<path d="M${x - 5 * s} ${my} q${5 * s} ${9 * s} ${10 * s} 0 z" fill="#c2405b" stroke="${OL}" stroke-width="${2.8 * s}" stroke-linejoin="round"/>`;
+        break;
+      case 'o':
+        m = `<ellipse cx="${x}" cy="${my + 2.5 * s}" rx="${3.6 * s}" ry="${4.6 * s}" fill="#c2405b" stroke="${OL}" stroke-width="${2.6 * s}"/>`;
+        break;
+      case 'wobble':
+        m = `<path d="M${x - 8 * s} ${my + 2 * s} l${4 * s} ${-3 * s} l${4 * s} ${3 * s} l${4 * s} ${-3 * s} l${4 * s} ${3 * s}" ${line(2.6 * s)}/>`;
         break;
       case 'cat':
         m = `<path d="M${x - 7 * s} ${my} q${3.5 * s} ${4.5 * s} ${7 * s} 0 q${3.5 * s} ${4.5 * s} ${7 * s} 0" ${line(2.8 * s)}/>`;
@@ -92,7 +154,7 @@
   // ----------------------------------------------------------------- armes
   const ITEMS = [
     {
-      name: 'Munition 9mm', short: '9mm', size: 46,
+      name: 'Munition 9mm', short: '9mm', size: 34,
       lore: 'La plus petite de la bande… et la plus rapide à s’énerver. Elle adore rouler sous les meubles et se cacher dans les poches.',
       hit: [['r', -32, -6, 64, 58, 14], ['r', -36, 44, 72, 14, 6], ['r', -30, -30, 60, 32, 6], ['c', 0, -36, 27]],
       art: c => `
@@ -104,7 +166,7 @@
         ${face(2, 18, 0.95, c, 'smile')}`
     },
     {
-      name: 'Flashbang', short: 'Flash', size: 58,
+      name: 'Flashbang', short: 'Flash', size: 42,
       lore: 'Timide, elle cligne des yeux sans arrêt et rougit dès qu’on la regarde. Quand elle éclate de rire… tout le monde est ébloui.',
       hit: [['r', -34, -36, 68, 88, 20], ['r', -26, -50, 52, 18, 6], ['r', 12, -56, 30, 15, 7], ['r', 30, -32, 18, 62, 8, 8], ['c', -30, -52, 16], ['c', 36, -38, 12]],
       art: c => `
@@ -123,7 +185,7 @@
         ${face(0, 18, 0.95, c, 'open')}`
     },
     {
-      name: 'Glock', short: 'Glock', size: 74,
+      name: 'Glock', short: 'Glock', size: 51,
       lore: 'Compact, fiable, toujours à l’heure. Il range ses munitions par couleur et fait la sieste dans les étuis.',
       hit: [['r', -58, -48, 118, 42, 18], ['r', -54, -12, 98, 20, 8], ['r', -54, -6, 48, 66, 12], ['r', -19, -2, 46, 36, 14]],
       art: c => `
@@ -140,7 +202,7 @@
         ${face(8, -28, 1, c, 'cat')}`
     },
     {
-      name: 'Revolver Magnum', short: 'Magnum', size: 92,
+      name: 'Revolver Magnum', short: 'Magnum', size: 61,
       lore: 'Il fait tourner son gros barillet quand il réfléchit et raconte toujours la même histoire de cow-boy. Personne n’ose l’interrompre.',
       hit: [['c', -6, -14, 34], ['r', -44, -44, 66, 50, 14], ['r', 18, -38, 66, 34, 10], ['r', -55, -4, 50, 72, 15, 10], ['r', -62, -54, 30, 28, 10], ['r', 70, -52, 18, 16, 4], ['r', -21, -4, 46, 34, 14]],
       art: c => `
@@ -162,7 +224,7 @@
         ${face(-6, -15, 0.85, c, 'open')}`
     },
     {
-      name: 'MP5', short: 'MP5', size: 110,
+      name: 'MP5', short: 'MP5', size: 72,
       lore: 'Hyperactif, il mitraille des blagues à toute vitesse. S’il garde sa crosse rentrée, c’est pour faire des câlins plus serrés.',
       hit: [['r', -44, -38, 86, 40, 14], ['r', 6, -44, 56, 12, 5], ['r', 34, -28, 48, 24, 10], ['r', -68, -36, 24, 44, 7], ['r', 9.5, -8, 27, 60, 9, -21], ['r', -33, -6, 28, 50, 9, 8], ['c', -34, -40, 10]],
       art: c => `
@@ -179,27 +241,7 @@
         ${face(-2, -18, 0.82, c, 'smile')}`
     },
     {
-      name: 'HK416', short: 'HK416', size: 132,
-      lore: 'Premier de la classe, il range son paquetage au millimètre. Son chargeur banane ? Il jure que c’est son goûter.',
-      hit: [['r', -40, -32, 74, 34, 12], ['r', 30, -28, 58, 24, 9], ['r', -78, -28, 42, 42, 12], ['r', -18, -52, 34, 22, 8], ['r', -1, -2, 28, 56, 9, -18], ['r', -33, -2, 24, 44, 8, 5]],
-      art: c => `
-        <path d="M-6 0 Q-4 30 12 54 L32 44 Q18 22 18 0 Z" ${st('#D9620A')}/>
-        <path d="M-1 14 l16 -2 M3 26 l16 -3 M9 38 l15 -4" ${line(3, '#A84A06')}/>
-        <path d="M-30 -2 L-12 -2 L-8 34 Q-10 42 -20 42 L-28 42 Q-36 40 -34 32 Z" ${st('#E87512')}/>
-        <path d="M-38 -26 L-62 -28 Q-76 -28 -78 -14 L-78 6 Q-76 16 -64 14 L-38 2 Z" ${st('#E87512')}/>
-        <rect x="30" y="-28" width="40" height="24" rx="9" ${st('#FFA347')}/>
-        <path d="M40 -16 l20 0" ${line(4, '#C55A0B')}/>
-        <rect x="68" y="-22" width="12" height="12" rx="3" ${st('#3E4456', 4)}/>
-        <rect x="78" y="-24" width="10" height="16" rx="4" ${st('#3E4456', 4)}/>
-        <rect x="-40" y="-32" width="74" height="34" rx="13" ${st('#FF8A1F')}/>
-        <rect x="-18" y="-52" width="34" height="20" rx="9" ${st('#3E4456')}/>
-        <circle cx="14" cy="-42" r="5" fill="#ff86a8"/>
-        <circle cx="13" cy="-44" r="1.8" fill="#fff"/>
-        ${shine(-18, -26, 16, 3.5, 0, 0.55)}
-        ${face(-6, -14, 0.8, c, 'tongue')}`
-    },
-    {
-      name: 'Fusil à pompe M4', short: 'Pompe', size: 152,
+      name: 'Fusil à pompe M4', short: 'Pompe', size: 85,
       lore: 'Un grand cœur sous des airs bourrus. Il collectionne les cartouches rouges comme des bonbons et refuse de les partager.',
       hit: [['r', -40, -38, 58, 40, 14], ['r', 8, -36, 80, 42, 11], ['r', -80, -30, 44, 54, 14], ['r', -34, -2, 30, 46, 10, 5], ['r', -35, -52, 20, 16, 5]],
       art: c => `
@@ -220,7 +262,45 @@
         ${face(-10, -18, 0.82, c, 'grin')}`
     },
     {
-      name: 'Sniper .50 BMG', short: '.50 BMG', size: 172,
+      name: 'HK416', short: 'HK416', size: 98,
+      lore: 'Premier de la classe, il range son paquetage au millimètre. Son chargeur banane ? Il jure que c’est son goûter.',
+      hit: [['r', -40, -32, 74, 34, 12], ['r', 30, -28, 58, 24, 9], ['r', -78, -28, 42, 42, 12], ['r', -18, -52, 34, 22, 8], ['r', -1, -2, 28, 56, 9, -18], ['r', -33, -2, 24, 44, 8, 5]],
+      art: c => `
+        <path d="M-6 0 Q-4 30 12 54 L32 44 Q18 22 18 0 Z" ${st('#D9620A')}/>
+        <path d="M-1 14 l16 -2 M3 26 l16 -3 M9 38 l15 -4" ${line(3, '#A84A06')}/>
+        <path d="M-30 -2 L-12 -2 L-8 34 Q-10 42 -20 42 L-28 42 Q-36 40 -34 32 Z" ${st('#E87512')}/>
+        <path d="M-38 -26 L-62 -28 Q-76 -28 -78 -14 L-78 6 Q-76 16 -64 14 L-38 2 Z" ${st('#E87512')}/>
+        <rect x="30" y="-28" width="40" height="24" rx="9" ${st('#FFA347')}/>
+        <path d="M40 -16 l20 0" ${line(4, '#C55A0B')}/>
+        <rect x="68" y="-22" width="12" height="12" rx="3" ${st('#3E4456', 4)}/>
+        <rect x="78" y="-24" width="10" height="16" rx="4" ${st('#3E4456', 4)}/>
+        <rect x="-40" y="-32" width="74" height="34" rx="13" ${st('#FF8A1F')}/>
+        <rect x="-18" y="-52" width="34" height="20" rx="9" ${st('#3E4456')}/>
+        <circle cx="14" cy="-42" r="5" fill="#ff86a8"/>
+        <circle cx="13" cy="-44" r="1.8" fill="#fff"/>
+        ${shine(-18, -26, 16, 3.5, 0, 0.55)}
+        ${face(-6, -14, 0.8, c, 'tongue')}`
+    },
+    {
+      name: 'RPG-7', short: 'RPG-7', size: 112,
+      lore: 'Sa tête toute ronde déborde d’idées explosives. Son rêve secret : devenir une montgolfière.',
+      hit: [['r', -90, -15, 124, 30, 10], ['c', 65, 0, 34], ['r', -64, 4, 24, 38, 8], ['r', -32, 4, 24, 34, 8], ['r', -93, -21, 22, 42, 6], ['r', -39, -29, 16, 18, 4], ['r', 94, -9, 15, 18, 4]],
+      art: c => `
+        <path d="M-56 4 L-42 4 L-40 34 Q-42 42 -50 42 L-56 42 Q-64 40 -62 32 Z" ${st('#B532B5')}/>
+        <path d="M-24 4 L-10 4 L-8 30 Q-10 38 -18 38 L-24 38 Q-32 36 -30 28 Z" ${st('#B532B5')}/>
+        <path d="M-90 -18 L-74 -10 L-74 10 L-90 18 Z" ${st('#B532B5')}/>
+        <rect x="-78" y="-11" width="104" height="22" rx="10" ${st('#C94BD0')}/>
+        <rect x="-48" y="-15" width="38" height="30" rx="8" ${st('#FFB05C')}/>
+        <path d="M-42 -8 l26 0 M-42 0 l26 0 M-42 8 l26 0" ${line(2.5, '#D9822B')}/>
+        <rect x="-36" y="-26" width="10" height="12" rx="3" ${st('#3e4456', 3.5)}/>
+        <rect x="18" y="-10" width="16" height="20" rx="4" ${st('#B532B5')}/>
+        <path d="M30 -8 C36 -12 40 -34 62 -34 C86 -34 98 -16 100 0 C98 16 86 34 62 34 C40 34 36 12 30 8 Z" ${st('#F062F0')}/>
+        <path d="M98 -6 L106 0 L98 6 Z" ${st('#B532B5', 4)}/>
+        ${shine(54, -22, 14, 6, -15, 0.55)}
+        ${face(62, 0, 1, c, 'cat')}`
+    },
+    {
+      name: 'Sniper .50 BMG', short: '.50 BMG', size: 130,
       lore: 'Elle peut patienter des heures sans bouger… pour admirer les étoiles dans sa lunette géante. Ne la réveillez pas.',
       hit: [['r', -84, -27, 108, 40, 12], ['r', 18, -16, 48, 12, 5], ['r', 62, -26, 30, 32, 10], ['r', -48, -66, 100, 36, 15], ['r', -35, 2, 30, 44, 10, 5], ['r', -10, 4, 22, 22, 5], ['r', 27, -5, 10, 46, 4, 15], ['r', 44, -5, 10, 46, 4, -17.6]],
       art: c => `
@@ -245,7 +325,7 @@
         ${face(-10, -10, 0.72, c, 'smile')}`
     },
     {
-      name: 'Minigun', short: 'Minigun', size: 190,
+      name: 'Minigun M134', short: 'Minigun', size: 150,
       lore: 'Quand il est content, ses canons se mettent à tourner tout seuls. Il est TRÈS souvent content.',
       hit: [['r', -64, -38, 66, 62, 20], ['r', -4, -40, 78, 58, 10], ['r', -76, -22, 16, 36, 7], ['r', -46, 18, 22, 40, 10, 18], ['r', -80, 40, 48, 24, 11, -12], ['r', -56, -56, 46, 20, 9]],
       art: c => `
@@ -267,25 +347,7 @@
         ${face(-30, -6, 1, c, 'open')}`
     },
     {
-      name: 'RPG-7', short: 'RPG-7', size: 220,
-      lore: 'Sa tête toute ronde déborde d’idées explosives. Son rêve secret : devenir une montgolfière.',
-      hit: [['r', -90, -15, 124, 30, 10], ['c', 65, 0, 34], ['r', -64, 4, 24, 38, 8], ['r', -32, 4, 24, 34, 8], ['r', -93, -21, 22, 42, 6], ['r', -39, -29, 16, 18, 4], ['r', 94, -9, 15, 18, 4]],
-      art: c => `
-        <path d="M-56 4 L-42 4 L-40 34 Q-42 42 -50 42 L-56 42 Q-64 40 -62 32 Z" ${st('#B532B5')}/>
-        <path d="M-24 4 L-10 4 L-8 30 Q-10 38 -18 38 L-24 38 Q-32 36 -30 28 Z" ${st('#B532B5')}/>
-        <path d="M-90 -18 L-74 -10 L-74 10 L-90 18 Z" ${st('#B532B5')}/>
-        <rect x="-78" y="-11" width="104" height="22" rx="10" ${st('#C94BD0')}/>
-        <rect x="-48" y="-15" width="38" height="30" rx="8" ${st('#FFB05C')}/>
-        <path d="M-42 -8 l26 0 M-42 0 l26 0 M-42 8 l26 0" ${line(2.5, '#D9822B')}/>
-        <rect x="-36" y="-26" width="10" height="12" rx="3" ${st('#3e4456', 3.5)}/>
-        <rect x="18" y="-10" width="16" height="20" rx="4" ${st('#B532B5')}/>
-        <path d="M30 -8 C36 -12 40 -34 62 -34 C86 -34 98 -16 100 0 C98 16 86 34 62 34 C40 34 36 12 30 8 Z" ${st('#F062F0')}/>
-        <path d="M98 -6 L106 0 L98 6 Z" ${st('#B532B5', 4)}/>
-        ${shine(54, -22, 14, 6, -15, 0.55)}
-        ${face(62, 0, 1, c, 'cat')}`
-    },
-    {
-      name: 'Mini-Tank Graal', short: 'Graal', size: 280,
+      name: 'Mini-Tank Graal', short: 'Graal', size: 210,
       lore: 'Le légendaire mini-tank. Il porte une couronne un peu trop petite et le sait très bien. C’est le plus câlin de tout l’arsenal.',
       hit: [['r', -82, 8, 164, 44, 22], ['r', -78, -18, 158, 32, 10], ['c', 0, -24, 46], ['r', 26, -53, 68, 24, 7], ['r', -22, -104, 44, 32, 9]],
       art: c => `
@@ -306,6 +368,18 @@
     }
   ];
 
+  /** Le point (x, y) est-il dans la pièce de hitbox h ? */
+  function inside(h, x, y) {
+    if (h[0] === 'c') return (x - h[1]) ** 2 + (y - h[2]) ** 2 <= h[3] * h[3];
+    const [, rx, ry, w, hh, ch, ang = 0] = h;
+    const a = -ang * Math.PI / 180, cx = rx + w / 2, cy = ry + hh / 2;
+    const dx = x - cx, dy = y - cy;
+    const lx = Math.abs(dx * Math.cos(a) - dy * Math.sin(a)), ly = Math.abs(dx * Math.sin(a) + dy * Math.cos(a));
+    const r = Math.min(ch, w / 2, hh / 2), qx = lx - (w / 2 - r), qy = ly - (hh / 2 - r);
+    if (lx > w / 2 || ly > hh / 2) return false;
+    return qx <= 0 || qy <= 0 || qx * qx + qy * qy <= r * r;
+  }
+
   // Étendue des hitboxes (repère du dessin) : utile pour viser et borner.
   ITEMS.forEach(it => {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -323,7 +397,12 @@
       }
     }
     it.hitBox = { x0, y0, x1, y1 };
-    it.scale = it.size / Math.max(x1 - x0, y1 - y0);     // unités monde par unité de dessin
+    // Surface réelle de la hitbox (union des pièces, échantillonnée sur une grille).
+    let n = 0;
+    for (let y = y0; y < y1; y += 1.5) for (let x = x0; x < x1; x += 1.5) if (it.hit.some(h => inside(h, x, y))) n++;
+    it.area = n * 2.25;
+    // `size` = diamètre équivalent visé (monde) : la taille suit la surface, pas la longueur.
+    it.scale = it.size / Math.sqrt(4 * it.area / Math.PI);
     it.view = { x: x0 - 20, y: y0 - 20, w: x1 - x0 + 40, h: y1 - y0 + 40 }; // affiné par measure()
   });
 
@@ -347,8 +426,11 @@
     svg.remove();
   }
 
-  /** SVG autonome. `square` : cadre carré (icônes) ; pw/ph : taille de rendu en pixels. */
-  function buildSVG(level, closed, square, pw, ph) {
+  /**
+   * SVG autonome. `v` : expression du visage ; `square` : cadre carré (icônes) ;
+   * pw/ph : taille de rendu en pixels ; `finish` : finition (classic, camo, gold).
+   */
+  function buildSVG(level, v, square, pw, ph, finish = 'classic') {
     const it = ITEMS[level];
     let { x, y, w, h } = it.view;
     if (square) {
@@ -356,14 +438,16 @@
       x -= (s - w) / 2; y -= (s - h) / 2; w = h = s;
     }
     grads = new Set();
-    const art = it.art(closed);
+    skin = finish;
+    const art = it.art(v);
     const defs = gradDefs();
     grads = null;
+    skin = 'classic';
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${w} ${h}" width="${pw || w}" height="${ph || h}"><defs>${defs}</defs>${art}</svg>`;
   }
 
-  const svgURL = (level, closed = false, square = true, pw, ph) =>
-    'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(buildSVG(level, closed, square, pw, ph));
+  const svgURL = (level, v = 0, square = true, pw, ph, finish) =>
+    'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(buildSVG(level, v, square, pw, ph, finish));
 
   window.Sprites = { ITEMS, measure, buildSVG, svgURL };
 })();

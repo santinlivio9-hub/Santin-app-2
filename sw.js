@@ -1,5 +1,5 @@
 /* Chibi Arsenal — service worker : jeu jouable hors ligne une fois chargé. */
-const CACHE = 'chibi-arsenal-v4';
+const CACHE = 'chibi-arsenal-v5';
 const CORE = [
   './',
   'index.html',

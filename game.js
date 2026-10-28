@@ -39,7 +39,7 @@
   // ---------------------------------------------------------------- thèmes
   const THEMES = {
     pastel: {
-      name: 'Pastel Doux', desc: 'Dégradé apaisant, ambiance chill.', unlock: null, meta: '#f6eefe',
+      name: 'Pastel Chill', desc: 'Dégradé apaisant, ambiance chill.', price: 0, meta: '#f6eefe',
       sticker: '#ffffff', halo: 'rgba(90,60,130,0.22)', shadow: 'rgba(90,50,140,0.22)',
       tankTop: 'rgba(255,255,255,0.22)', tankBot: 'rgba(255,255,255,0.5)',
       wall: 'rgba(255,255,255,0.95)', wallInner: 'rgba(176,150,214,0.35)', glow: null,
@@ -48,7 +48,7 @@
       guide: 'rgba(255,255,255,0.85)', danger: '255,110,150', text: '#ff7aa2', textStroke: '#ffffff', ring: '255,255,255'
     },
     atelier: {
-      name: 'Atelier Armurerie', desc: 'Établi en bois sombre, néons tamisés et grille d’accroche.', unlock: 5, meta: '#2b1a12',
+      name: 'Établi d’Armurier', desc: 'Établi en bois sombre, néons tamisés et grille d’accroche.', price: 250, meta: '#2b1a12',
       sticker: '#fff3e2', halo: 'rgba(0,0,0,0.45)', shadow: 'rgba(0,0,0,0.45)',
       tankTop: 'rgba(255,225,190,0.04)', tankBot: 'rgba(255,225,190,0.12)',
       wall: 'rgba(255,236,214,0.9)', wallInner: 'rgba(95,242,255,0.55)', glow: 'rgba(95,242,255,0.85)',
@@ -57,7 +57,7 @@
       guide: 'rgba(95,242,255,0.7)', danger: '255,80,160', text: '#ff7ac0', textStroke: '#2b1a12', ring: '255,220,170'
     },
     blueprint: {
-      name: 'Blueprint', desc: 'Schéma d’ingénieur bleu technique, traits nets.', unlock: 7, meta: '#1b4f8a',
+      name: 'Blueprint', desc: 'Schéma d’ingénieur bleu technique, traits nets.', price: 600, meta: '#1b4f8a',
       sticker: '#eaf4ff', halo: 'rgba(5,30,70,0.4)', shadow: 'rgba(5,25,60,0.45)',
       tankTop: 'rgba(255,255,255,0.03)', tankBot: 'rgba(255,255,255,0.09)',
       wall: 'rgba(234,244,255,0.95)', wallInner: 'rgba(120,180,255,0.6)', glow: null, grid: true,
@@ -66,7 +66,7 @@
       guide: 'rgba(234,244,255,0.75)', danger: '255,120,110', text: '#ffd36b', textStroke: '#1b4f8a', ring: '234,244,255'
     },
     night: {
-      name: 'Vision Nocturne', desc: 'Vert phosphore épuré, lignes de balayage.', unlock: 8, meta: '#04140a',
+      name: 'Vision Nocturne', desc: 'Vert phosphore épuré, lignes de balayage.', price: 600, meta: '#04140a',
       sticker: '#c8ffd4', halo: 'rgba(0,0,0,0.5)', shadow: 'rgba(0,0,0,0.55)',
       tankTop: 'rgba(120,255,150,0.03)', tankBot: 'rgba(120,255,150,0.08)',
       wall: 'rgba(170,255,190,0.85)', wallInner: 'rgba(90,255,130,0.5)', glow: 'rgba(90,255,130,0.8)',
@@ -75,11 +75,33 @@
       guide: 'rgba(140,255,170,0.7)', danger: '255,100,100', text: '#d8ff7a', textStroke: '#04140a', ring: '170,255,190'
     }
   };
-  const THEME_ORDER = ['pastel', 'atelier', 'blueprint', 'night'];
+  THEMES.cyber = {
+    name: 'Stand Cyberpunk', desc: 'Stand de tir furtif, néons magenta et cyan.', price: 1200, meta: '#0b0618',
+    sticker: '#f4e9ff', halo: 'rgba(0,0,0,0.5)', shadow: 'rgba(0,0,0,0.55)',
+    tankTop: 'rgba(180,80,255,0.04)', tankBot: 'rgba(0,240,255,0.1)',
+    wall: 'rgba(240,225,255,0.9)', wallInner: 'rgba(255,60,200,0.6)', glow: 'rgba(255,60,200,0.85)',
+    reflect: 'rgba(0,240,255,0.18)', rail: 'rgba(0,240,255,0.8)', railInner: 'rgba(11,6,24,0.8)',
+    cart: '#00f0ff', cartStroke: 'rgba(11,6,24,0.9)', cartDot: '#ff3cc8', string: 'rgba(0,240,255,0.6)',
+    guide: 'rgba(0,240,255,0.7)', danger: '255,60,120', text: '#00f0ff', textStroke: '#0b0618', ring: '255,120,230'
+  };
+  const THEME_ORDER = ['pastel', 'atelier', 'blueprint', 'night', 'cyber'];
+
+  // Finitions d'armes vendues en boutique.
+  const SKINS = {
+    classic: { name: 'Classique Chibi', desc: 'Les couleurs signature de chaque arme.', price: 0 },
+    camo: { name: 'Camo Militaire Urbain', desc: 'Camouflage urbain teinté, mat et tactique.', price: 400 },
+    gold: { name: 'Plaqué Or Brillant', desc: 'Or poli à reflets, avec scintillements.', price: 1500 }
+  };
+  const SKIN_ORDER = ['classic', 'camo', 'gold'];
+
+  // Douilles d'Or gagnées en créant chaque niveau par fusion (Graal x2 : 50).
+  const COINS = [0, 1, 1, 2, 3, 4, 6, 8, 11, 16, 25];
+  const COIN_GRAAL_PAIR = 50;
+  const COIN_SCORE_RATE = 100;               // bonus de fin : 1 douille / 100 points
 
   // -------------------------------------------------------------- stockage
   const store = (() => {
-    let data = { best: 0, discovered: [], stats: [], music: true, sfx: true, haptics: true, motion: false, theme: 'pastel', themesSeen: ['pastel'] };
+    let data = { best: 0, discovered: [], stats: [], music: true, sfx: true, haptics: true, motion: false, theme: 'pastel', coins: 0, ownedThemes: ['pastel'], ownedSkins: ['classic'], skin: 'classic' };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) data = Object.assign(data, JSON.parse(raw));
@@ -92,10 +114,14 @@
       saveSoon() { clearTimeout(timer); timer = setTimeout(write, 400); }
     };
   })();
-  ['discovered', 'stats', 'themesSeen'].forEach(k => { if (!Array.isArray(store.data[k])) store.data[k] = []; });
+  ['discovered', 'stats', 'ownedThemes', 'ownedSkins'].forEach(k => { if (!Array.isArray(store.data[k])) store.data[k] = []; });
   if (!THEMES[store.data.theme]) store.data.theme = 'pastel';
+  if (!SKINS[store.data.skin]) store.data.skin = 'classic';
+  store.data.coins = Math.max(0, Math.floor(+store.data.coins || 0));
+  // Toujours posséder les articles gratuits et ce qui est déjà équipé (anciennes versions).
+  for (const k of ['pastel', store.data.theme]) if (!store.data.ownedThemes.includes(k)) store.data.ownedThemes.push(k);
+  for (const k of ['classic', store.data.skin]) if (!store.data.ownedSkins.includes(k)) store.data.ownedSkins.push(k);
   const stat = lvl => (store.data.stats[lvl] = store.data.stats[lvl] || { first: 0, count: 0, best: null });
-  const themeUnlocked = key => THEMES[key].unlock == null || !!store.data.discovered[THEMES[key].unlock];
   let T = THEMES[store.data.theme];
 
   // ------------------------------------------------------------------- DOM
@@ -139,7 +165,8 @@
   })();
 
   // ------------------------------------------------------------- sprites
-  let raster = [];          // raster[level][ouvert|fermé] = { c: canvas, m: marge monde }
+  // raster[level][expression] = { c, s, m } ; expressions : 0 normal, 1 clin, 2 écrasé, 3 écarquillé
+  let raster = [];
   let scale = 1, dpr = 1, rasterJob = 0;
 
   /** Rastérise les armes à la taille d'affichage, avec un liseré "sticker". */
@@ -149,13 +176,13 @@
     const stickerPx = Math.max(2, 2.4 * px);
     const haloPx = stickerPx + Math.max(1.2, 1.4 * px);
     const mpx = Math.ceil(haloPx + 2);
-    const out = await Promise.all(ITEMS.map((it, lvl) => Promise.all([false, true].map(closed => new Promise(res => {
+    const out = await Promise.all(ITEMS.map((it, lvl) => Promise.all([0, 1, 2, 3].map(v => new Promise(res => {
       const s = it.scale * px;
       const wpx = Math.max(4, Math.round(it.view.w * s)), hpx = Math.max(4, Math.round(it.view.h * s));
       const img = new Image();
       img.onload = () => res(compose(img, wpx, hpx, mpx, stickerPx, haloPx, px));
       img.onerror = () => res(null);
-      img.src = svgURL(lvl, closed, false, wpx, hpx);
+      img.src = svgURL(lvl, v, false, wpx, hpx, store.data.skin);
     })))));
     if (job === rasterJob) raster = out;
   }
@@ -300,7 +327,9 @@
       phase: Math.random() * Math.PI * 2,
       sq: { d: 0, v: 0, a: 0 },
       blinkAt: rt + 1 + Math.random() * 4,
-      blinkUntil: 0
+      blinkUntil: 0,
+      expr: 0,
+      exprUntil: 0
     };
     items.set(body.id, it);
     Composite.add(engine.world, body);
@@ -316,9 +345,17 @@
   /** Squash & stretch : un choc violent écrase l'arme le long de la normale. */
   function kick(it, speed, ang) {
     if (speed < 2.2) return;
-    const imp = Math.min((speed - 2) * 0.32, 3.6);
+    const imp = Math.min((speed - 2) * 0.36, 3.4);
     if (imp > Math.abs(it.sq.v) * 0.6) it.sq.a = ang;
     it.sq.v += imp;
+    if (speed > 7.5) react(it, 3, 0.5);      // gros choc : yeux écarquillés
+  }
+
+  /** Réaction du visage : 2 = écrasé (> <), 3 = écarquillé. */
+  function react(it, expr, dur) {
+    if (rt < it.exprUntil && it.expr === 3 && expr === 2) return;
+    it.expr = expr;
+    it.exprUntil = Math.max(it.exprUntil, rt + dur);
   }
 
   function onCollision(e, isStart) {
@@ -338,6 +375,11 @@
             if (s > 1.2) A.land(s / 12, it.level);
           }
         }
+      }
+      // Coincée sous un poids lourd : yeux écrasés.
+      if (!isStart && a && b && a !== b) {
+        if (pb.mass > pa.mass * 2.2 && pb.position.y < pa.position.y - 4) react(a, 2, 0.35);
+        else if (pa.mass > pb.mass * 2.2 && pa.position.y < pb.position.y - 4) react(b, 2, 0.35);
       }
       if (a && b && a !== b && a.level === b.level && !a.merging && !b.merging) {
         a.merging = b.merging = true;
@@ -377,6 +419,8 @@
         Haptics.pulse([40, 60, 40, 60, 80]);
         toast(MAX_LEVEL, 'Double Graal ! +' + pts);
         if (combo >= 2) showCombo(combo, comboBonus);
+        shockwave(x, y, 260, 7, null);
+        earnCoins(COIN_GRAAL_PAIR, x, y + 30);
         continue;
       }
 
@@ -385,7 +429,8 @@
       x = Math.max(TANK_L + g.hw * 0.7, Math.min(TANK_R - g.hw * 0.7, x));
       y = Math.min(TANK_B - g.hh * 0.7, y);
       const n = addItem(lvl, x, y, { center: true, grow: true, vel, angle: (a.body.angle + b.body.angle) / 2, chain: combo });
-      n.sq.v = 3.8; n.sq.a = Math.PI / 2;
+      n.sq.v = 3.2; n.sq.a = Math.PI / 2;
+      shockwave(x, y, Math.max(g.hw, g.hh) * 2.2, 2.4 + lvl * 0.3, n);
 
       const pts = POINTS[lvl] * combo + comboBonus;
       addScore(pts, x, y - g.hh * 0.6, false);
@@ -394,10 +439,55 @@
       A.pop(lvl, combo);
       Haptics.pulse([40, 60, 40]);
       if (lvl >= 7) shake = Math.max(shake, 4 + (lvl - 7) * 3);
+      earnCoins(COINS[lvl], x + g.hw * 0.4, y + g.hh * 0.3);
       onReach(lvl);
     }
     mergeQueue.length = 0;
   }
+
+  /** Souffle radial : les voisines sursautent et s'écartent doucement. */
+  function shockwave(x, y, R, force, except) {
+    for (const o of items.values()) {
+      if (o === except || o.merging) continue;
+      const dx = o.body.position.x - x, dy = o.body.position.y - y;
+      const d = Math.hypot(dx, dy) || 1;
+      if (d > R) continue;
+      const k = 1 - d / R;
+      const b = o.body;
+      Body.setVelocity(b, { x: b.velocity.x + dx / d * force * k, y: b.velocity.y + dy / d * force * k - 1.6 * k });
+      Body.setAngularVelocity(b, b.angularVelocity + (Math.random() - 0.5) * 0.08 * k);
+      o.sq.v += 2.6 * k;
+      o.sq.a = Math.atan2(dy, dx);
+      if (k > 0.45) react(o, 3, 0.35);
+    }
+  }
+
+  // ------------------------------------------------------------ économie
+  let coinsRun = 0;
+
+  function earnCoins(n, x, y) {
+    if (!n) return;
+    coinsRun += n;
+    store.data.coins += n;
+    store.saveSoon();
+    if (x != null) texts.push({ x, y, text: '+' + n, color: '#ffb800', size: 18, t: 0, life: 1.1, coin: true });
+    updateCoins(true);
+  }
+
+  function updateCoins(pop) {
+    $('coins').textContent = store.data.coins.toLocaleString('fr-FR');
+    const b = $('btn-shop');
+    b.classList.toggle('dot', canAffordNew());
+    if (pop) {
+      b.classList.remove('bump');
+      void b.offsetWidth;
+      b.classList.add('bump');
+    }
+  }
+
+  const canAffordNew = () =>
+    THEME_ORDER.some(k => !store.data.ownedThemes.includes(k) && THEMES[k].price <= store.data.coins) ||
+    SKIN_ORDER.some(k => !store.data.ownedSkins.includes(k) && SKINS[k].price <= store.data.coins);
 
   // ------------------------------------------------------------ gameplay
   function newGame() {
@@ -410,7 +500,7 @@
     mergeQueue = [];
     createWorld();
     gt = 0; acc = 0;
-    score = 0; shownScore = 0;
+    score = 0; shownScore = 0; coinsRun = 0;
     Object.assign(nextCharge, RECHARGE);
     dangerT = 0; lastTick = 0;
     shake = 0;
@@ -482,10 +572,6 @@
       A.jingle();
       toast(lvl, (isNew ? 'Nouvelle arme : ' : 'Débloqué : ') + ITEMS[lvl].name + ' !');
     }
-    if (isNew) {
-      const key = THEME_ORDER.find(k => THEMES[k].unlock === lvl);
-      if (key) setTimeout(() => { toast(null, 'Thème débloqué : ' + THEMES[key].name + ' !', 'theme'); updateThemeDot(); }, 2300);
-    }
   }
 
   function addScore(pts, x, y, big) {
@@ -550,8 +636,10 @@
     const best = store.data.best || 0;
     const record = score > best;
     if (record) store.data.best = score;
+    const bonus = Math.floor(score / COIN_SCORE_RATE);
+    earnCoins(bonus);
     store.save();
-    setTimeout(() => showGameOver(record), 750);
+    setTimeout(() => showGameOver(record, bonus), 750);
   }
 
   // -------------------------------------------------- pouvoirs tactiques
@@ -611,15 +699,7 @@
     removeItem(it);
     burst(x, y, Math.max(g.hw, g.hh), it.level, false, ['#ff9f5a', '#ffd34e', '#ff6b8f', '#ffffff']);
     particles.push({ type: 'ring', x, y, r0: 10, r1: 120, t: 0, life: 0.5 });
-    for (const o of items.values()) {
-      const dx = o.body.position.x - x, dy = o.body.position.y - y;
-      const d = Math.hypot(dx, dy) || 1;
-      if (d < 140) {
-        const f = (1 - d / 140) * 6;
-        Body.setVelocity(o.body, { x: o.body.velocity.x + dx / d * f, y: o.body.velocity.y + dy / d * f - 1 });
-        o.sq.v += f * 0.6; o.sq.a = Math.atan2(dy, dx);
-      }
-    }
+    shockwave(x, y, 150, 6, null);
     floatText(x, y - 20, 'BOUM !', '#ff6b3d', 30);
     shake = 12;
     A.boom();
@@ -690,7 +770,7 @@
   function updateSquish(dt) {
     for (const it of items.values()) {
       const s = it.sq;
-      s.v += (-560 * s.d - 10 * s.v) * dt;
+      s.v += (-420 * s.d - 6.5 * s.v) * dt;     // ressort peu amorti : rebond de gelée
       s.d += s.v * dt;
       if (s.d > SQUASH) { s.d = SQUASH; s.v *= -0.3; }
       if (s.d < -SQUASH * 0.7) { s.d = -SQUASH * 0.7; s.v *= -0.3; }
@@ -851,11 +931,11 @@
   }
 
   /** Dessine le sprite d'une arme (ou son ombre), origine du dessin en (0, 0). */
-  function blit(level, closed, shadow) {
-    const r = raster[level] && raster[level][closed ? 1 : 0];
+  function blit(level, v, shadow) {
+    const r = raster[level] && raster[level][v];
     if (!r) return;
-    const it = ITEMS[level], s = it.scale, v = it.view;
-    ctx.drawImage(shadow ? r.s : r.c, v.x * s - r.m, v.y * s - r.m, v.w * s + 2 * r.m, v.h * s + 2 * r.m);
+    const it = ITEMS[level], s = it.scale, vw = it.view;
+    ctx.drawImage(shadow ? r.s : r.c, vw.x * s - r.m, vw.y * s - r.m, vw.w * s + 2 * r.m, vw.h * s + 2 * r.m);
   }
 
   function drawItem(it, shadow) {
@@ -872,7 +952,8 @@
     ctx.rotate(b.angle);
     ctx.scale(vis, vis);
     ctx.translate(it.off.x, it.off.y);
-    blit(it.level, rt < it.blinkUntil, shadow);
+    const v = rt < it.exprUntil ? it.expr : (rt < it.blinkUntil ? 1 : 0);
+    blit(it.level, v, shadow);
     ctx.restore();
   }
 
@@ -885,7 +966,7 @@
     const k = 1 - 0.35 * t;
     ctx.scale(k, k);
     ctx.translate(g.off.x, g.off.y);
-    blit(g.level, true);
+    blit(g.level, 1);
     ctx.restore();
   }
 
@@ -930,7 +1011,7 @@
     ctx.rotate(Math.sin(rt * 2.2) * 0.05);
     ctx.scale(a, a);
     ctx.translate(-g.cx, -g.cy);
-    blit(lvl, (rt % 3.4) < 0.13);
+    blit(lvl, (rt % 3.4) < 0.13 ? 1 : 0);
     ctx.restore();
   }
 
@@ -1019,9 +1100,22 @@
       ctx.strokeText(t.text, t.x, t.y);
       ctx.fillStyle = t.color;
       ctx.fillText(t.text, t.x, t.y);
+      if (t.coin) drawCoin(t.x + ctx.measureText(t.text).width / 2 + 9, t.y, 7.5);
     }
     ctx.globalAlpha = 1;
     ctx.textBaseline = 'alphabetic';
+  }
+
+  /** Petite Douille d'Or (pièce) dessinée sur le canvas. */
+  function drawCoin(x, y, r) {
+    ctx.fillStyle = '#3d2c4e';
+    ctx.beginPath(); ctx.arc(x, y, r + 1.6, 0, Math.PI * 2); ctx.fill();
+    const g = ctx.createLinearGradient(x, y - r, x, y + r);
+    g.addColorStop(0, '#fff2a8'); g.addColorStop(0.5, '#ffc928'); g.addColorStop(1, '#d98e00');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff6cf';
+    ctx.beginPath(); ctx.ellipse(x - r * 0.3, y - r * 0.35, r * 0.35, r * 0.2, -0.5, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawCountdown() {
@@ -1075,6 +1169,14 @@
     if (state !== 'pause') {
       if (items) updateSquish(dt);
       updateFx(dt);
+      if (state === 'play' && store.data.skin === 'gold' && items && items.size && Math.random() < dt * 4) {
+        const all = [...items.values()], it = all[(Math.random() * all.length) | 0], g = geo(it.level);
+        particles.push({
+          type: 'star', x: it.body.position.x + (Math.random() - 0.5) * g.hw * 1.4,
+          y: it.body.position.y + (Math.random() - 0.5) * g.hh * 1.2, vx: 0, vy: -20,
+          size: 3 + Math.random() * 3, rot: 0, vr: 3, color: '#fffbe0', t: 0, life: 0.6
+        });
+      }
     }
     if (shownScore !== score) {
       shownScore += (score - shownScore) * Math.min(1, dt * 9);
@@ -1132,7 +1234,7 @@
       else if (e.key === 'x') usePower('shake');
       else if (e.key === 'Escape' || e.key === 'p') { if (targeting) setTargeting(false); else pause(); }
     } else if (e.key === 'Escape') {
-      if (current === 'codex' || current === 'themes') closePanel();
+      if (current === 'codex' || current === 'shop') closePanel();
       else if (state === 'pause') resume();
     }
   });
@@ -1174,7 +1276,7 @@
   }
 
   function updateNext() {
-    elNext.src = svgURL(nextLevel);
+    elNext.src = svgURL(nextLevel, 0, true, undefined, undefined, store.data.skin);
     elNext.alt = ITEMS[nextLevel].name;
     elNextPill.classList.remove('swap');
     void elNextPill.offsetWidth;
@@ -1234,6 +1336,8 @@
 
   const ICONS = {
     theme: '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1.1-1.6-1.1-2.6 0-.8.6-1.4 1.5-1.4h2.1A4.7 4.7 0 0 0 21 10.8C21 6.5 17 3 12 3z" fill="#ffd1e3" stroke="#3d2c4e" stroke-width="1.8"/><circle cx="7.5" cy="11" r="1.6" fill="#ff7aa2"/><circle cx="10" cy="7" r="1.6" fill="#7cc8ff"/><circle cx="14.5" cy="7" r="1.6" fill="#8fe0b0"/></svg>',
+    shop: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#ffc928" stroke="#3d2c4e" stroke-width="1.8"/><path d="M9 9.5c0-1.2 1.3-2 3-2s3 .8 3 2-1.3 1.6-3 2-3 .9-3 2.1 1.3 1.9 3 1.9 3-.7 3-1.9M12 6v12" fill="none" stroke="#3d2c4e" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    share: '<svg viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4M6 12v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6" fill="none" stroke="#3d2c4e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     power: '<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="#ffd34e" stroke="#3d2c4e" stroke-width="1.8" stroke-linejoin="round"/></svg>'
   };
 
@@ -1263,7 +1367,7 @@
   // --------------------------------------------------------------- menus
   const overlays = {
     start: $('menu-start'), pause: $('menu-pause'), over: $('menu-over'),
-    codex: $('menu-codex'), themes: $('menu-themes')
+    codex: $('menu-codex'), shop: $('menu-shop')
   };
   let current = null, returnTo = null, resumeAfter = false;
 
@@ -1277,7 +1381,7 @@
 
   /** Ouvre un panneau secondaire (codex, thèmes) en mettant la partie en pause. */
   function openPanel(name) {
-    if (current !== 'codex' && current !== 'themes') {
+    if (current !== 'codex' && current !== 'shop') {
       returnTo = current;
       resumeAfter = state === 'play';
     }
@@ -1303,7 +1407,7 @@
   }
 
   Object.values(overlays).forEach(el => el.addEventListener('click', e => {
-    if (e.target === el && (current === 'codex' || current === 'themes')) closePanel();
+    if (e.target === el && (current === 'codex' || current === 'shop')) closePanel();
   }));
 
   function start() {
@@ -1343,7 +1447,7 @@
   ];
 
   function medalSVG(m) {
-    return `<svg viewBox="0 0 120 140" aria-hidden="true">
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" aria-hidden="true">
       <defs><radialGradient id="mg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="${m.c1}"/><stop offset="1" stop-color="${m.c2}"/></radialGradient></defs>
       <path d="M38 4 L54 48 L40 52 L24 8 Z" fill="#ff9fbd" stroke="#3d2c4e" stroke-width="4" stroke-linejoin="round"/>
       <path d="M82 4 L66 48 L80 52 L96 8 Z" fill="#a9d8ff" stroke="#3d2c4e" stroke-width="4" stroke-linejoin="round"/>
@@ -1354,9 +1458,12 @@
     </svg>`;
   }
 
-  function showGameOver(record) {
+  function showGameOver(record, bonus) {
     const lvl = Math.max(0, maxLevel);
     const medal = [...MEDALS].reverse().find(m => lvl >= m.min);
+    $('over-coins').textContent = '+' + coinsRun.toLocaleString('fr-FR');
+    $('over-coins-detail').textContent = `dont ${bonus.toLocaleString('fr-FR')} de bonus de score`;
+    prepareShare(medal, lvl, record);
     $('over-medal').innerHTML = medalSVG(medal);
     $('over-medal-name').textContent = 'Médaille ' + medal.name;
     $('over-score').textContent = score;
@@ -1367,8 +1474,80 @@
     showOverlay('over');
   }
 
+  // ------------------------------------------------------------- partage
+  let shareFile = null;
+  const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+  const shareText = () => `J'ai fait ${score.toLocaleString('fr-FR')} points sur Chibi Arsenal ! Tu fais mieux ? 🔫💥`;
+  const shareURL = () => location.href.split('#')[0].split('?')[0];
+
+  /** Génère à l'avance l'image du score (navigator.share doit partir directement du toucher). */
+  async function prepareShare(medal, lvl, record) {
+    shareFile = null;
+    const W = 1080, H = 1350;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const font = (w, px) => `${w} ${px}px Fredoka, ui-rounded, system-ui, sans-serif`;
+    const bg = g.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#ffd1e6'); bg.addColorStop(0.5, '#e9dcff'); bg.addColorStop(1, '#ccf3e2');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(176,150,214,0.22)';
+    for (let y = 20; y < H; y += 44) for (let x = 20; x < W; x += 44) { g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill(); }
+    // carte verre
+    g.fillStyle = 'rgba(255,255,255,0.72)';
+    g.strokeStyle = '#ffffff'; g.lineWidth = 6;
+    g.beginPath(); g.roundRect(70, 150, W - 140, H - 260, 60); g.fill(); g.stroke();
+    g.textAlign = 'center';
+    g.font = font(700, 70);
+    const w1 = g.measureText('CHIBI ').width, w2 = g.measureText('ARSENAL').width;
+    g.textAlign = 'left';
+    g.fillStyle = '#3d2c4e'; g.fillText('CHIBI ', (W - w1 - w2) / 2, 110);
+    g.fillStyle = '#ff5d8f'; g.fillText('ARSENAL', (W - w1 - w2) / 2 + w1, 110);
+    g.textAlign = 'center';
+    g.fillStyle = '#7a6a8c'; g.font = font(600, 44); g.fillText(record ? '✨ NOUVEAU RECORD ✨' : 'MON SCORE', W / 2, 260);
+    g.font = font(700, 190); g.lineJoin = 'round'; g.lineWidth = 22; g.strokeStyle = '#ffffff';
+    g.strokeText(score.toLocaleString('fr-FR'), W / 2, 450); g.fillStyle = '#ff5d8f'; g.fillText(score.toLocaleString('fr-FR'), W / 2, 450);
+    const [weapon, badge] = await Promise.all([
+      loadImg(svgURL(lvl, 0, true, 520, 520, store.data.skin)),
+      loadImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(medalSVG(medal)))
+    ]);
+    if (weapon) g.drawImage(weapon, W / 2 - 300, 500, 440, 440);
+    if (badge) g.drawImage(badge, W / 2 + 150, 560, 210, 245);
+    g.fillStyle = '#b096d6'; g.font = font(700, 40); g.fillText('Médaille ' + medal.name, W / 2 + 255, 850);
+    g.fillStyle = '#7a6a8c'; g.font = font(600, 38); g.fillText('Meilleure arme', W / 2, 1010);
+    g.fillStyle = '#3d2c4e'; g.font = font(700, 62); g.fillText(ITEMS[lvl].name, W / 2, 1080);
+    g.fillStyle = '#7a6a8c'; g.font = font(600, 36); g.fillText('Record : ' + (store.data.best || 0).toLocaleString('fr-FR'), W / 2, 1150);
+    g.fillStyle = '#3d2c4e'; g.font = font(600, 34); g.fillText('Fusionne les armes chibi sur ' + location.host, W / 2, H - 40);
+    c.toBlob(b => { if (b) shareFile = new File([b], 'chibi-arsenal-score.png', { type: 'image/png' }); }, 'image/png');
+    $('over-share-img').src = c.toDataURL('image/png');
+  }
+
+  async function shareScore() {
+    A.click();
+    const text = shareText(), url = shareURL();
+    try {
+      if (shareFile && navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+        await navigator.share({ files: [shareFile], title: 'Chibi Arsenal', text: text + ' ' + url });
+        return;
+      }
+      if (navigator.share) {
+        await navigator.share({ title: 'Chibi Arsenal', text, url });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;      // partage annulé par le joueur
+    }
+    try {
+      await navigator.clipboard.writeText(text + ' ' + url);
+      toast(null, 'Score et lien copiés dans le presse-papier !', 'share');
+    } catch (e) {
+      toast(null, 'Copie impossible : ' + url, 'share');
+    }
+  }
+  $('btn-share').addEventListener('click', shareScore);
+
   // ---------------------------------------------------- codex (armurerie)
-  const TINTS = ['#fff3c4', '#d8f7e6', '#ffe0ea', '#ebe3ff', '#dff0ff', '#ffe7d1', '#ffdcd6', '#e3e8ff', '#ffecc9', '#effad6', '#fff0fa'];
+  const TINTS = ['#fff3c4', '#e3f9d2', '#ffe0ef', '#efe3ff', '#dff0ff', '#ffe0e0', '#ffe7d1', '#fbe0fb', '#d8f7ef', '#e3e6ff', '#fff3cf'];
   let codexLevel = 0;
   const fmtTime = s => s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')} s`;
   const fmtDate = ms => new Date(ms).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -1427,45 +1606,77 @@
     if (rebuild) buildRaster();
   }
 
-  function updateThemeDot() {
-    const fresh = THEME_ORDER.some(k => themeUnlocked(k) && !store.data.themesSeen.includes(k));
-    $('btn-theme').classList.toggle('dot', fresh);
-  }
+  // ------------------------------------------------------------ boutique
+  let shopTab = 'themes';
 
-  function renderThemes() {
-    const list = $('theme-list');
-    list.innerHTML = '';
-    THEME_ORDER.forEach(key => {
-      const th = THEMES[key], open = themeUnlocked(key), active = store.data.theme === key;
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'theme-card' + (active ? ' active' : '') + (open ? '' : ' locked');
-      b.innerHTML = `<span class="swatch" data-t="${key}"></span>
-        <span class="theme-info"><b>${th.name}</b><small>${open ? th.desc : 'Se débloque en obtenant : ' + ITEMS[th.unlock].name}</small></span>
-        <span class="theme-state" aria-hidden="true">${active ? '✓' : (open ? '' : '🔒')}</span>`;
-      b.disabled = !open;
-      b.addEventListener('click', () => {
-        store.data.theme = key;
-        store.save();
-        applyTheme(key);
-        A.click();
-        renderThemes();
-      });
-      list.appendChild(b);
+  function renderShop() {
+    $('shop-coins').textContent = store.data.coins.toLocaleString('fr-FR');
+    document.querySelectorAll('.shop-tab').forEach(t => {
+      const on = t.dataset.tab === shopTab;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', String(on));
     });
-    THEME_ORDER.forEach(k => { if (themeUnlocked(k) && !store.data.themesSeen.includes(k)) store.data.themesSeen.push(k); });
-    store.saveSoon();
-    updateThemeDot();
+    const list = $('shop-list');
+    list.innerHTML = '';
+    const isTheme = shopTab === 'themes';
+    const order = isTheme ? THEME_ORDER : SKIN_ORDER;
+    order.forEach(key => {
+      const art = isTheme ? THEMES[key] : SKINS[key];
+      const owned = (isTheme ? store.data.ownedThemes : store.data.ownedSkins).includes(key);
+      const equipped = (isTheme ? store.data.theme : store.data.skin) === key;
+      const missing = art.price - store.data.coins;
+      const card = document.createElement('div');
+      card.className = 'shop-card' + (equipped ? ' equipped' : '');
+      const preview = isTheme
+        ? `<span class="swatch" data-t="${key}"></span>`
+        : `<span class="skin-prev"><img src="${svgURL(6, 0, true, 120, 120, key)}" alt=""></span>`;
+      let action;
+      if (equipped) action = '<span class="badge-equipped">✓ Équipé</span>';
+      else if (owned) action = '<button class="btn-mini select" type="button">Sélectionner</button>';
+      else if (missing <= 0) action = `<button class="btn-mini buy" type="button">Acheter <i class="coin-ico"></i>${art.price.toLocaleString('fr-FR')}</button>`;
+      else action = `<button class="btn-mini locked" type="button" disabled><i class="coin-ico"></i>${art.price.toLocaleString('fr-FR')}</button><small class="missing">Il manque ${missing.toLocaleString('fr-FR')}</small>`;
+      card.innerHTML = `${preview}<span class="shop-info"><b>${art.name}</b><small>${art.price ? art.desc : 'Gratuit · ' + art.desc}</small></span><span class="shop-action">${action}</span>`;
+      const btn = card.querySelector('button:not([disabled])');
+      if (btn) btn.addEventListener('click', () => (owned ? equip(isTheme, key) : buy(isTheme, key)));
+      list.appendChild(card);
+    });
   }
 
-  function openThemes() { A.unlock(); A.click(); renderThemes(); openPanel('themes'); }
-  $('btn-theme').addEventListener('click', openThemes);
-  $('btn-themes-start').addEventListener('click', openThemes);
+  function buy(isTheme, key) {
+    const art = isTheme ? THEMES[key] : SKINS[key];
+    if (store.data.coins < art.price) return;
+    store.data.coins -= art.price;
+    (isTheme ? store.data.ownedThemes : store.data.ownedSkins).push(key);
+    A.jingle();
+    Haptics.pulse([20, 40, 20]);
+    equip(isTheme, key, true);
+    toast(null, art.name + ' débloqué !', 'shop');
+  }
+
+  function equip(isTheme, key, silent) {
+    if (isTheme) {
+      store.data.theme = key;
+      applyTheme(key);
+    } else {
+      store.data.skin = key;
+      buildRaster();
+      updateNext();
+    }
+    store.save();
+    if (!silent) A.click();
+    updateCoins();
+    renderShop();
+  }
+
+  function openShop() { A.unlock(); A.click(); renderShop(); openPanel('shop'); }
+  $('btn-shop').addEventListener('click', openShop);
+  $('btn-shop-start').addEventListener('click', openShop);
+  document.querySelectorAll('.shop-tab').forEach(t => t.addEventListener('click', () => { shopTab = t.dataset.tab; A.click(); renderShop(); }));
   $('btn-codex-start').addEventListener('click', () => {
     A.unlock(); A.click();
     openCodex(store.data.discovered.reduce((m, v, i) => (v ? i : m), 0));
   });
-  $('themes-close').addEventListener('click', closePanel);
+  $('shop-close').addEventListener('click', closePanel);
 
   // ----------------------------------------------------------- réglages
   function applySettings() {
@@ -1540,7 +1751,7 @@
     buildEvo();
     initStartScreen();
     applySettings();
-    updateThemeDot();
+    updateCoins();
     reached = ITEMS.map(() => false);
     updateEvo();
     updateNext();
@@ -1565,7 +1776,7 @@
     get powers() { return { ...powers }; },
     get targeting() { return targeting; },
     get rasterReady() { return raster.length === ITEMS.length; },
-    drop, start, newGame, usePower,
+    drop, start, newGame, usePower, gameOver,
     aim(x) { dropper.tx = x; },
     spawn(level, x, y, angle) { return addItem(level, x, y, { center: true, angle }); },
     /** Interpénétration entre armes (px monde) : la plus forte et la moyenne. */

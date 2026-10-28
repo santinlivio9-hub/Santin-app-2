@@ -23,7 +23,9 @@ Sur iPhone, dans Safari, utilisez *Partager → Sur l'écran d'accueil* pour l'i
 
 ## Hiérarchie de fusion
 
-1. Munition 9mm → 2. Flashbang → 3. Glock → 4. Revolver Magnum → 5. MP5 → 6. HK416 → 7. Fusil à pompe M4 → 8. Sniper .50 BMG → 9. Minigun → 10. RPG-7 → 11. **Mini-Tank Graal**
+1. Munition 9mm → 2. Flashbang → 3. Glock → 4. Revolver Magnum → 5. MP5 → 6. Fusil à pompe M4 → 7. HK416 → 8. RPG-7 → 9. Sniper .50 BMG → 10. Minigun M134 → 11. **Mini-Tank Graal**
+
+La taille de chaque arme est calculée à partir de la **surface réelle de sa hitbox** (diamètre équivalent de 34 à 210 px, environ +17 % par palier) : chaque niveau est strictement plus gros et plus lourd que le précédent.
 
 Seules les 5 premières armes tombent du chariot. Deux Graals qui se touchent disparaissent dans une pluie de confettis (+500).
 
@@ -40,8 +42,18 @@ Trois boutons sous la cuve, une charge chacun au départ, puis rechargés avec l
 - **C4** : vise et fait exploser une arme (les armes qui bloquent la ligne rouge sont marquées d'un réticule).
 - **Secousse** : secoue toute la cuve pour débloquer un empilement. Peut aussi se déclencher en secouant le téléphone (option « Secouer l'appareil » dans la pause, permission accéléromètre demandée sur iOS).
 
-## Thèmes déblocables
-Icône palette dans le HUD : **Pastel Doux** (défaut), **Atelier Armurerie** (débloqué par le HK416), **Blueprint** (Sniper .50 BMG), **Vision Nocturne** (Minigun).
+## Économie : Douilles d'Or & boutique
+- Chaque fusion rapporte des douilles selon l'arme créée (+1 à +25, +50 pour deux Graals), plus un bonus de fin de partie (1 douille / 100 points). Le solde est sauvegardé et affiché dans le bouton boutique du HUD.
+- **Boutique tactique** (bouton panier) — rayon *Fonds* : Pastel Chill (gratuit), Établi d'Armurier (250), Blueprint (600), Vision Nocturne (600), Stand Cyberpunk (1 200). Rayon *Finitions* : Classique Chibi (gratuit), Camo Militaire Urbain (400), Plaqué Or Brillant (1 500).
+- États : « Acheter » (solde suffisant), prix grisé + « Il manque N », « Sélectionner » (possédé), badge « Équipé ».
+
+## Sensations
+- Squash & stretch le long de l'axe d'impact (jusqu'à 15 %), ressort peu amorti qui oscille avant de revenir.
+- Onde de choc à chaque fusion : les armes voisines sursautent et s'écartent.
+- Visages expressifs : yeux > < quand une arme est coincée sous une plus lourde, yeux écarquillés après un gros choc.
+
+## Partage
+Sur l'écran de fin, « Partager mon score » envoie une image générée (score, meilleure arme, médaille) via `navigator.share` ; sinon le texte et le lien sont copiés dans le presse-papier.
 
 ## Armurerie (codex)
 Touchez une arme de la barre d'évolution pour ouvrir sa fiche carte postale : anecdote chibi, date de découverte, nombre d'obtentions et record de déblocage (temps le plus court pour l'obtenir dans une partie).
