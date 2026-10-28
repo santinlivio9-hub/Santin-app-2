@@ -217,8 +217,10 @@
       <h2>Boutique tactique</h2>
       <div class="wallet"><i class="coin-ico" aria-hidden="true"></i><b id="shop-coins">0</b><span>Douilles d'Or</span></div>
       <div class="shop-tabs" role="tablist">
-        <button class="shop-tab" type="button" role="tab" data-tab="themes">Fonds</button>
+        <button class="shop-tab" type="button" role="tab" data-tab="decor">Décors</button>
         <button class="shop-tab" type="button" role="tab" data-tab="skins">Finitions</button>
+        <button class="shop-tab" type="button" role="tab" data-tab="trails">Traînées</button>
+        <button class="shop-tab" type="button" role="tab" data-tab="sfx">Sons</button>
       </div>
       <div class="shop-list" id="shop-list"></div>
       <p class="shop-hint">Chaque fusion rapporte des douilles (+1 à +25), plus un bonus de fin de partie selon le score.</p>
@@ -237,40 +239,61 @@
     </div>
   </section>
 
-  <section class="overlay" id="menu-admin" aria-hidden="true">
-    <div class="glass panel admin-panel">
-      <h2>Console admin</h2>
-      <fieldset>
-        <legend>Douilles d'Or</legend>
-        <div class="adm-row"><input type="number" id="adm-coins" min="0" inputmode="numeric"><button class="btn-mini buy" id="adm-coins-apply" type="button">Appliquer</button></div>
-        <div class="adm-row"><button class="btn-mini select" id="adm-coins-10k" type="button">+10 000</button><button class="btn-mini select" id="adm-coins-max" type="button">Max (999 999)</button></div>
-      </fieldset>
-      <fieldset>
-        <legend>Boutique</legend>
-        <button class="btn-mini buy wide" id="adm-unlock" type="button">Tout débloquer (thèmes + finitions)</button>
-      </fieldset>
-      <fieldset>
-        <legend>Spawner</legend>
-        <select id="adm-weapon" aria-label="Arme à forcer"></select>
-        <div class="adm-row"><button class="btn-mini select adm-ingame" id="adm-weapon-now" type="button">Mettre en main</button><button class="btn-mini select adm-ingame" id="adm-weapon-next" type="button">Mettre en « Suivant »</button></div>
-      </fieldset>
-      <fieldset>
-        <legend>Score</legend>
-        <div class="adm-row"><input type="number" id="adm-score" min="0" inputmode="numeric" aria-label="Score actuel"><button class="btn-mini select adm-ingame" id="adm-score-apply" type="button">Score actuel</button></div>
-        <div class="adm-row"><input type="number" id="adm-best" min="0" inputmode="numeric" aria-label="Record"><button class="btn-mini select" id="adm-best-apply" type="button">Record</button></div>
-      </fieldset>
-      <fieldset>
-        <legend>Physique (temps réel)</legend>
-        <label class="adm-slider">Gravité <b id="adm-gravity-v"></b><input type="range" id="adm-gravity" min="0.1" max="3" step="0.05"></label>
-        <div class="adm-row"><button class="btn-mini select" id="adm-grav-normal" type="button">Normale</button><button class="btn-mini select" id="adm-grav-moon" type="button">Lunaire</button></div>
-        <label class="adm-slider">Rebond (restitution) <b id="adm-rest-v"></b><input type="range" id="adm-rest" min="0" max="0.95" step="0.01"></label>
-        <button class="btn-mini select wide adm-ingame" id="adm-clear" type="button">Nettoyer la cuve</button>
-      </fieldset>
-      <fieldset>
-        <legend>Données</legend>
-        <button class="btn-mini danger wide" id="adm-reset" type="button">Reset total du jeu</button>
-      </fieldset>
-      <button class="btn ghost" id="adm-close">Fermer</button>
+  <section class="overlay admin-overlay" id="menu-admin" aria-hidden="true">
+    <div class="admin-deck" id="admin-deck" role="dialog" aria-label="Console admin">
+      <header class="adm-head">
+        <span class="adm-grip" aria-hidden="true"></span>
+        <b>⌘ COMMAND DECK</b>
+        <span class="adm-wallet"><i class="coin-ico"></i><code id="adm-coins-now">0</code></span>
+        <button class="adm-x" id="adm-close" type="button" aria-label="Fermer">✕</button>
+      </header>
+      <nav class="adm-tabs">
+        <button class="adm-tab" type="button" data-tab="eco">Économie</button>
+        <button class="adm-tab" type="button" data-tab="sandbox">Sandbox</button>
+        <button class="adm-tab" type="button" data-tab="physics">Physique</button>
+        <button class="adm-tab" type="button" data-tab="cheats">Triche</button>
+      </nav>
+
+      <section class="adm-sec" data-tab="eco">
+        <h3>Douilles d'or</h3>
+        <div class="adm-line"><input type="number" id="adm-coins" min="0" inputmode="numeric" aria-label="Douilles"><button class="adm-btn accent" id="adm-coins-set" type="button">Appliquer</button></div>
+        <div class="adm-chips"><button class="adm-btn" data-coins="+5000" type="button">+5k</button><button class="adm-btn" data-coins="+50000" type="button">+50k</button><button class="adm-btn" data-coins="999999" type="button">999 999</button></div>
+        <h3>Score</h3>
+        <div class="adm-line"><input type="number" id="adm-score" min="0" inputmode="numeric" aria-label="Score en cours"><button class="adm-btn adm-ingame" id="adm-score-set" type="button">Score en cours</button></div>
+        <div class="adm-line"><input type="number" id="adm-best" min="0" inputmode="numeric" aria-label="High score"><button class="adm-btn" id="adm-best-set" type="button">High score</button></div>
+        <h3>Multiplicateur de score</h3>
+        <div class="adm-seg adm-mult"><button type="button" data-m="1">x1</button><button type="button" data-m="2">x2</button><button type="button" data-m="5">x5</button><button type="button" data-m="10">x10</button></div>
+      </section>
+
+      <section class="adm-sec" data-tab="sandbox" hidden>
+        <h3>Spawner</h3>
+        <select id="adm-weapon" aria-label="Arme"></select>
+        <div class="adm-chips"><button class="adm-btn adm-ingame" id="adm-place" type="button">Placer sous le doigt</button><button class="adm-btn accent adm-ingame" id="adm-drop" type="button">Larguer au centre</button></div>
+        <h3>Stress test</h3>
+        <div class="adm-chips"><button class="adm-btn adm-ingame" id="adm-rain" type="button">Pluie d'armes ×15</button><button class="adm-btn warn adm-ingame" id="adm-clear" type="button">Vider la cuve</button></div>
+      </section>
+
+      <section class="adm-sec" data-tab="physics" hidden>
+        <h3>Gravité</h3>
+        <label class="adm-range"><span>g</span><output id="adm-gravity-v"></output><input type="range" id="adm-gravity" min="-1.5" max="3" step="0.05"></label>
+        <div class="adm-seg"><button type="button" data-grav="1.35">Terrestre</button><button type="button" data-grav="0.22">Lunaire</button><button type="button" data-grav="-0.6">Inversée</button><button type="button" data-grav="0">Zéro</button></div>
+        <h3>Matériaux</h3>
+        <label class="adm-range"><span>Rebond</span><output id="adm-rest-v"></output><input type="range" id="adm-rest" min="0" max="1" step="0.01"></label>
+        <label class="adm-range"><span>Friction air</span><output id="adm-air-v"></output><input type="range" id="adm-air" min="0" max="0.1" step="0.002"></label>
+        <label class="adm-range"><span>Friction contact</span><output id="adm-fric-v"></output><input type="range" id="adm-fric" min="0" max="1" step="0.01"></label>
+        <label class="adm-toggle"><span>God Mode <small>ligne rouge désactivée</small></span><input type="checkbox" id="adm-god"><i></i></label>
+      </section>
+
+      <section class="adm-sec" data-tab="cheats" hidden>
+        <h3>Déverrouillages</h3>
+        <button class="adm-btn accent wide" id="adm-unlock" type="button">Débloquer toute la boutique (4 rayons)</button>
+        <h3>Pouvoirs</h3>
+        <label class="adm-toggle"><span>Pouvoirs illimités <small>aucune charge consommée</small></span><input type="checkbox" id="adm-free"><i></i></label>
+        <div class="adm-chips"><button class="adm-btn adm-ingame" id="adm-c4" type="button">C4 maintenant</button><button class="adm-btn adm-ingame" id="adm-shake" type="button">Secousse maintenant</button></div>
+        <h3>Données</h3>
+        <button class="adm-btn danger wide" id="adm-reset" type="button">Reset usine (localStorage)</button>
+      </section>
+      <p class="adm-status" id="adm-status" aria-live="polite"></p>
     </div>
   </section>
 

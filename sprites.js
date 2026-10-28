@@ -9,7 +9,8 @@
 (function () {
   'use strict';
 
-  const OL = '#3d2c4e';            // contour sombre (prune)
+  const INK = '#3d2c4e';           // contour sombre (prune)
+  let OL = INK;                    // contour courant (fluo en finition néon)
   const SW = 5;                    // épaisseur de contour
 
   // ---------------------------------------------------------------- helpers
@@ -48,6 +49,11 @@
   /** Finitions : classique (couleur signature), camo urbain, plaqué or. */
   const gradDefs = () => [...grads].map(hex => {
     const id = 'g' + hex.slice(1);
+    if (skin === 'neon') {
+      // Néon : carrosserie sombre teintée, reflet discret.
+      const d = mix(hex, '#0a0d1c', 0.8);
+      return linear(id, [[0, shade(d, 0.35)], [0.3, d], [1, shade(d, -0.4)]]);
+    }
     if (skin === 'gold') {
       // Or poli : bandes de reflets métalliques, plus clair là où la pièce l'était.
       const g = shade('#f2b51d', (luma(hex) - 0.5) * 0.7);
@@ -75,8 +81,10 @@
     return vinyl(id, hex);
   }).join('');
 
+  /** Contour fluo dérivé de la couleur de la pièce (finition néon). */
+  const neonOf = hex => (hex[0] === '#' ? shade(mix(hex, '#00f0ff', 0.15), 0.35) : '#9ff6ff');
   const st = (fill, w = SW) =>
-    `fill="${paint(fill)}" stroke="${OL}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+    `fill="${paint(fill)}" stroke="${skin === 'neon' ? neonOf(fill) : OL}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
   const line = (w = SW, color = OL) =>
     `fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"`;
 
@@ -439,10 +447,12 @@
     }
     grads = new Set();
     skin = finish;
+    OL = finish === 'neon' ? '#dffbff' : INK;
     const art = it.art(v);
     const defs = gradDefs();
     grads = null;
     skin = 'classic';
+    OL = INK;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${w} ${h}" width="${pw || w}" height="${ph || h}"><defs>${defs}</defs>${art}</svg>`;
   }
 

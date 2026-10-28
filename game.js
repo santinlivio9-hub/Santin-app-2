@@ -33,7 +33,10 @@
 
   const BODY_OPTS = { restitution: 0.32, friction: 0.35, frictionStatic: 0.6, frictionAir: 0.014, label: 'item' };
   // Réglages physiques modifiables depuis le menu admin (non sauvegardés).
-  const tuning = { gravity: 1.35, restitution: BODY_OPTS.restitution };
+  const tuning = {
+    gravity: 1.35, restitution: BODY_OPTS.restitution, frictionAir: BODY_OPTS.frictionAir, friction: BODY_OPTS.friction,
+    scoreMult: 1, god: false, freePowers: false
+  };
   const PART_OPTS = { density: 0.0012, slop: 0.01 };
   const OUTLINE = 2.5;                       // demi-épaisseur du contour (unités de dessin)
   const STICKER = 2;                         // liseré blanc visible (unités monde)
@@ -50,7 +53,7 @@
       guide: 'rgba(255,255,255,0.85)', danger: '255,110,150', text: '#ff7aa2', textStroke: '#ffffff', ring: '255,255,255'
     },
     atelier: {
-      name: 'Établi d’Armurier', desc: 'Établi en bois sombre, néons tamisés et grille d’accroche.', price: 250, meta: '#2b1a12',
+      name: 'Établi d’Armurier', desc: 'Établi en bois sombre, néons tamisés et grille d’accroche.', price: 350, meta: '#2b1a12',
       sticker: '#fff3e2', halo: 'rgba(0,0,0,0.45)', shadow: 'rgba(0,0,0,0.45)',
       tankTop: 'rgba(255,225,190,0.04)', tankBot: 'rgba(255,225,190,0.12)',
       wall: 'rgba(255,236,214,0.9)', wallInner: 'rgba(95,242,255,0.55)', glow: 'rgba(95,242,255,0.85)',
@@ -59,7 +62,7 @@
       guide: 'rgba(95,242,255,0.7)', danger: '255,80,160', text: '#ff7ac0', textStroke: '#2b1a12', ring: '255,220,170'
     },
     blueprint: {
-      name: 'Blueprint', desc: 'Schéma d’ingénieur bleu technique, traits nets.', price: 600, meta: '#1b4f8a',
+      name: 'Blueprint', desc: 'Schéma d’ingénieur bleu technique, traits nets.', price: 750, meta: '#1b4f8a',
       sticker: '#eaf4ff', halo: 'rgba(5,30,70,0.4)', shadow: 'rgba(5,25,60,0.45)',
       tankTop: 'rgba(255,255,255,0.03)', tankBot: 'rgba(255,255,255,0.09)',
       wall: 'rgba(234,244,255,0.95)', wallInner: 'rgba(120,180,255,0.6)', glow: null, grid: true,
@@ -68,7 +71,7 @@
       guide: 'rgba(234,244,255,0.75)', danger: '255,120,110', text: '#ffd36b', textStroke: '#1b4f8a', ring: '234,244,255'
     },
     night: {
-      name: 'Vision Nocturne', desc: 'Vert phosphore épuré, lignes de balayage.', price: 600, meta: '#04140a',
+      name: 'Vision Nocturne', desc: 'Vert phosphore épuré, lignes de balayage.', price: 750, meta: '#04140a',
       sticker: '#c8ffd4', halo: 'rgba(0,0,0,0.5)', shadow: 'rgba(0,0,0,0.55)',
       tankTop: 'rgba(120,255,150,0.03)', tankBot: 'rgba(120,255,150,0.08)',
       wall: 'rgba(170,255,190,0.85)', wallInner: 'rgba(90,255,130,0.5)', glow: 'rgba(90,255,130,0.8)',
@@ -78,7 +81,7 @@
     }
   };
   THEMES.cyber = {
-    name: 'Stand Cyberpunk', desc: 'Stand de tir furtif, néons magenta et cyan.', price: 1200, meta: '#0b0618',
+    name: 'Stand Cyberpunk', desc: 'Stand de tir furtif, néons magenta et cyan.', price: 1500, meta: '#0b0618',
     sticker: '#f4e9ff', halo: 'rgba(0,0,0,0.5)', shadow: 'rgba(0,0,0,0.55)',
     tankTop: 'rgba(180,80,255,0.04)', tankBot: 'rgba(0,240,255,0.1)',
     wall: 'rgba(240,225,255,0.9)', wallInner: 'rgba(255,60,200,0.6)', glow: 'rgba(255,60,200,0.85)',
@@ -86,15 +89,50 @@
     cart: '#00f0ff', cartStroke: 'rgba(11,6,24,0.9)', cartDot: '#ff3cc8', string: 'rgba(0,240,255,0.6)',
     guide: 'rgba(0,240,255,0.7)', danger: '255,60,120', text: '#00f0ff', textStroke: '#0b0618', ring: '255,120,230'
   };
-  const THEME_ORDER = ['pastel', 'atelier', 'blueprint', 'night', 'cyber'];
-
-  // Finitions d'armes vendues en boutique.
-  const SKINS = {
-    classic: { name: 'Classique Chibi', desc: 'Les couleurs signature de chaque arme.', price: 0 },
-    camo: { name: 'Camo Militaire Urbain', desc: 'Camouflage urbain teinté, mat et tactique.', price: 400 },
-    gold: { name: 'Plaqué Or Brillant', desc: 'Or poli à reflets, avec scintillements.', price: 1500 }
+  THEMES.desert = {
+    name: 'Camo Tactique', desc: 'Camouflage désert discret, tons sable.', price: 2200, meta: '#cdb48a',
+    sticker: '#fffaf0', halo: 'rgba(90,60,20,0.25)', shadow: 'rgba(90,60,20,0.28)',
+    tankTop: 'rgba(255,250,235,0.18)', tankBot: 'rgba(255,250,235,0.42)',
+    wall: 'rgba(255,248,232,0.95)', wallInner: 'rgba(140,105,60,0.4)', glow: null,
+    reflect: 'rgba(255,255,255,0.4)', rail: 'rgba(255,248,232,0.9)', railInner: 'rgba(140,105,60,0.5)',
+    cart: '#fff8e8', cartStroke: 'rgba(120,90,50,0.8)', cartDot: '#ff8a3d', string: 'rgba(120,90,50,0.6)',
+    guide: 'rgba(255,255,255,0.85)', danger: '220,60,60', text: '#c2410c', textStroke: '#fff8e8', ring: '255,248,232'
   };
-  const SKIN_ORDER = ['classic', 'camo', 'gold'];
+  const THEME_ORDER = ['pastel', 'atelier', 'night', 'blueprint', 'cyber', 'desert'];
+
+  // Finitions d'armes.
+  const SKINS = {
+    classic: { name: 'Style Chibi Classique', desc: 'Les couleurs signature de chaque arme.', price: 0 },
+    camo: { name: 'Camouflage Forêt / Urbain', desc: 'Motif camo texturé, teinté par arme.', price: 500 },
+    gold: { name: 'Plaqué Or 24K', desc: 'Or poli, scintillements d\u2019étoiles.', price: 2000 },
+    neon: { name: 'Néon Glow / Tron', desc: 'Contours fluo lumineux sur fond sombre.', price: 3500 }
+  };
+  const SKIN_ORDER = ['classic', 'camo', 'gold', 'neon'];
+
+  // Traînées de chute (effet qui suit l'arme pendant qu'elle tombe).
+  const TRAILS = {
+    none: { name: 'Aucune', desc: 'Chute sobre, sans effet.', price: 0 },
+    smoke: { name: 'Fumée de poudre', desc: 'Petits nuages gris tout doux.', price: 400 },
+    sparks: { name: 'Étincelles dorées', desc: 'Micro-particules scintillantes.', price: 900 },
+    laser: { name: 'Laser néon', desc: 'Faisceau lumineux rémanent.', price: 1800 }
+  };
+  const TRAIL_ORDER = ['none', 'smoke', 'sparks', 'laser'];
+
+  // Packs de bruitages (voir audio.js).
+  const SFX_PACKS = {
+    cartoon: { name: 'Cartoon Plop', desc: 'Plops et pops pétillants (défaut).', price: 0 },
+    meca: { name: 'Réaliste & Mécanique', desc: 'Culasse en acier, encliquetages secs.', price: 800 },
+    arcade: { name: 'Arcade 8-Bit', desc: 'Bips rétro façon console de poche.', price: 1200 }
+  };
+  const SFX_ORDER = ['cartoon', 'meca', 'arcade'];
+
+  // Les 4 rayons de la boutique : catalogue, clé "possédés" et clé "équipé" du stockage.
+  const CATALOG = {
+    decor: { label: 'Décors', items: THEMES, order: THEME_ORDER, owned: 'ownedThemes', eq: 'theme' },
+    skins: { label: 'Finitions', items: SKINS, order: SKIN_ORDER, owned: 'ownedSkins', eq: 'skin' },
+    trails: { label: 'Traînées', items: TRAILS, order: TRAIL_ORDER, owned: 'ownedTrails', eq: 'trail' },
+    sfx: { label: 'Sons', items: SFX_PACKS, order: SFX_ORDER, owned: 'ownedSfx', eq: 'sfxPack' }
+  };
 
   // Douilles d'Or gagnées en créant chaque niveau par fusion (Graal x2 : 50).
   const COINS = [0, 1, 1, 2, 3, 4, 6, 8, 11, 16, 25];
@@ -103,7 +141,8 @@
 
   // -------------------------------------------------------------- stockage
   const store = (() => {
-    let data = { best: 0, discovered: [], stats: [], music: true, sfx: true, haptics: true, motion: false, theme: 'pastel', coins: 0, ownedThemes: ['pastel'], ownedSkins: ['classic'], skin: 'classic' };
+    let data = { best: 0, discovered: [], stats: [], music: true, sfx: true, haptics: true, motion: false, theme: 'pastel', coins: 0, ownedThemes: ['pastel'], ownedSkins: ['classic'], skin: 'classic',
+      ownedTrails: ['none'], trail: 'none', ownedSfx: ['cartoon'], sfxPack: 'cartoon' };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) data = Object.assign(data, JSON.parse(raw));
@@ -116,13 +155,15 @@
       saveSoon() { clearTimeout(timer); timer = setTimeout(write, 400); }
     };
   })();
-  ['discovered', 'stats', 'ownedThemes', 'ownedSkins'].forEach(k => { if (!Array.isArray(store.data[k])) store.data[k] = []; });
-  if (!THEMES[store.data.theme]) store.data.theme = 'pastel';
-  if (!SKINS[store.data.skin]) store.data.skin = 'classic';
+  ['discovered', 'stats'].forEach(k => { if (!Array.isArray(store.data[k])) store.data[k] = []; });
   store.data.coins = Math.max(0, Math.floor(+store.data.coins || 0));
-  // Toujours posséder les articles gratuits et ce qui est déjà équipé (anciennes versions).
-  for (const k of ['pastel', store.data.theme]) if (!store.data.ownedThemes.includes(k)) store.data.ownedThemes.push(k);
-  for (const k of ['classic', store.data.skin]) if (!store.data.ownedSkins.includes(k)) store.data.ownedSkins.push(k);
+  // Toujours posséder les articles gratuits et ce qui est équipé (y compris anciennes versions).
+  for (const cat of Object.values(CATALOG)) {
+    if (!Array.isArray(store.data[cat.owned])) store.data[cat.owned] = [];
+    if (!cat.items[store.data[cat.eq]]) store.data[cat.eq] = cat.order[0];
+    for (const k of [cat.order[0], store.data[cat.eq]]) if (!store.data[cat.owned].includes(k)) store.data[cat.owned].push(k);
+  }
+  A.pack = store.data.sfxPack;
   const stat = lvl => (store.data.stats[lvl] = store.data.stats[lvl] || { first: 0, count: 0, best: null });
   let T = THEMES[store.data.theme];
 
@@ -154,14 +195,21 @@
       label.remove();
     };
     return {
-      pulse(pattern) {
+      /**
+       * Android / standard : navigator.vibrate. iPhone (pas de vibrate) : clic du
+       * Taptic Engine via l'interrupteur + impulsion sub-basse 35 Hz (A.thump)
+       * qui fait vibrer le châssis, y compris hors d'un geste.
+       */
+      pulse(pattern, strength = 1) {
         if (!store.data.haptics) return;
         if (canVibrate) {
           try { navigator.vibrate(pattern); } catch (e) { /* ignore */ }
           return;
         }
+        const twice = Array.isArray(pattern) && pattern.length > 2;
         tick();
-        if (Array.isArray(pattern) && pattern.length > 2) setTimeout(tick, pattern[0] + pattern[1]);
+        A.thump(strength);
+        if (twice) setTimeout(() => { tick(); A.thump(strength * 0.8); }, pattern[0] + pattern[1]);
       }
     };
   })();
@@ -281,8 +329,23 @@
       Bodies.rectangle(TANK_L - W / 2, top + h / 2, W, h, wallOpts),
       Bodies.rectangle(TANK_R + W / 2, top + h / 2, W, h, wallOpts)
     ]);
+    ceiling = null;
+    syncCeiling();
     Events.on(engine, 'collisionStart', e => onCollision(e, true));
     Events.on(engine, 'collisionActive', e => onCollision(e, false));
+  }
+
+  /** Plafond présent seulement en gravité inversée (les armes flottent contre le haut). */
+  let ceiling = null;
+  function syncCeiling() {
+    if (!engine) return;
+    if (tuning.gravity < 0 && !ceiling) {
+      ceiling = Bodies.rectangle(VIEW_W / 2, -36, VIEW_W * 2, 80, { isStatic: true, label: 'wall', friction: 0.3, restitution: 0.2 });
+      Composite.add(engine.world, ceiling);
+    } else if (tuning.gravity >= 0 && ceiling) {
+      Composite.remove(engine.world, ceiling);
+      ceiling = null;
+    }
   }
 
   /**
@@ -375,6 +438,7 @@
           if (it && it.dropped && !it.landed) {
             it.landed = true;
             if (s > 1.2) A.land(s / 12, it.level);
+            if (s > 3) Haptics.pulse(10, Math.min(1, s / 12));
           }
         }
       }
@@ -439,7 +503,7 @@
       if (combo >= 2) showCombo(combo, comboBonus);
       burst(x, y, Math.max(g.hw, g.hh), lvl, false);
       A.pop(lvl, combo);
-      Haptics.pulse([40, 60, 40]);
+      Haptics.pulse([15, 30, 20]);
       if (lvl >= 7) shake = Math.max(shake, 4 + (lvl - 7) * 3);
       earnCoins(COINS[lvl], x + g.hw * 0.4, y + g.hh * 0.3);
       onReach(lvl);
@@ -472,8 +536,32 @@
     coinsRun += n;
     store.data.coins += n;
     store.saveSoon();
-    if (x != null) texts.push({ x, y, text: '+' + n, color: '#ffb800', size: 18, t: 0, life: 1.1, coin: true });
-    updateCoins(true);
+    if (x != null && flying < 10) flyCoin(n, x, y);
+    else updateCoins(true);
+  }
+
+  /** Une douille "+n" s'élève de la fusion puis file vers le compteur du HUD. */
+  let flying = 0;
+  function flyCoin(n, x, y) {
+    const r = canvas.getBoundingClientRect();
+    const dst = $('btn-shop').querySelector('.coin-ico').getBoundingClientRect();
+    const sx = r.left + x / VIEW_W * r.width, sy = r.top + y / VIEW_H * r.height;
+    const dx = dst.left + dst.width / 2 - sx, dy = dst.top + dst.height / 2 - sy;
+    const el = document.createElement('div');
+    el.className = 'coin-fly';
+    el.innerHTML = `<i class="coin-ico"></i>+${n}`;
+    el.style.left = sx + 'px';
+    el.style.top = sy + 'px';
+    document.body.appendChild(el);
+    flying++;
+    const done = () => { el.remove(); flying--; updateCoins(true); };
+    if (!el.animate) { done(); return; }
+    el.animate([
+      { transform: 'translate(-50%, -50%) scale(.5)', opacity: 0 },
+      { transform: 'translate(-50%, -120%) scale(1.15)', opacity: 1, offset: 0.22 },
+      { transform: 'translate(-50%, -150%) scale(1)', opacity: 1, offset: 0.45 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.45)`, opacity: 0.85 }
+    ], { duration: 1150, easing: 'cubic-bezier(.45, 0, .35, 1)' }).onfinish = done;
   }
 
   function updateCoins(pop) {
@@ -487,9 +575,8 @@
     }
   }
 
-  const canAffordNew = () =>
-    THEME_ORDER.some(k => !store.data.ownedThemes.includes(k) && THEMES[k].price <= store.data.coins) ||
-    SKIN_ORDER.some(k => !store.data.ownedSkins.includes(k) && SKINS[k].price <= store.data.coins);
+  const canAffordNew = () => Object.values(CATALOG).some(cat =>
+    cat.order.some(k => !store.data[cat.owned].includes(k) && cat.items[k].price <= store.data.coins));
 
   // ------------------------------------------------------------ gameplay
   function newGame() {
@@ -577,6 +664,7 @@
   }
 
   function addScore(pts, x, y, big) {
+    pts = Math.round(pts * tuning.scoreMult);
     score += pts;
     floatText(x, y, '+' + pts, big ? '#ff5d8f' : T.text, big ? 40 : 22 + Math.min(14, pts / 10));
     const chip = document.createElement('span');
@@ -614,8 +702,8 @@
       const sp = b.speed;
       if (sp > 26) Body.setVelocity(b, { x: b.velocity.x * 26 / sp, y: b.velocity.y * 26 / sp });
       if (Math.abs(b.angularVelocity) > 0.35) Body.setAngularVelocity(b, Math.sign(b.angularVelocity) * 0.35);
-      if (b.position.y > VIEW_H + 300 || b.position.x < -300 || b.position.x > VIEW_W + 300) { removeItem(it); continue; }
-      if (!it.merging && gt - it.born > 1.1 && b.bounds.min.y < TANK_TOP) danger = true;
+      if (b.position.y > VIEW_H + 300 || b.position.y < -600 || b.position.x < -300 || b.position.x > VIEW_W + 300) { removeItem(it); continue; }
+      if (!tuning.god && !it.merging && gt - it.born > 1.1 && b.bounds.min.y < TANK_TOP) danger = true;
     }
 
     if (danger) {
@@ -669,7 +757,7 @@
       setTargeting(!targeting);
       return true;          // la charge n'est consommée qu'à l'explosion
     }
-    powers[kind]--;
+    if (!tuning.freePowers) powers[kind]--;
     updatePowers();
     return true;
   }
@@ -706,7 +794,7 @@
     shake = 12;
     A.boom();
     Haptics.pulse([30, 40, 70]);
-    powers.c4--;
+    if (!tuning.freePowers) powers.c4--;
     updatePowers();
     setTargeting(false);
   }
@@ -754,7 +842,7 @@
         const drag = p.type === 'confetti' ? 2.6 : 3.2;
         p.vx -= p.vx * drag * dt;
         p.vy -= p.vy * drag * dt;
-        p.vy += (p.type === 'confetti' ? 260 : 120) * dt;
+        p.vy += (p.type === 'confetti' ? 260 : p.type === 'puff' ? -30 : 120) * dt;
         p.x += p.vx * dt;
         p.y += p.vy * dt;
         p.rot += p.vr * dt;
@@ -766,6 +854,53 @@
     for (const g of ghosts) g.t += dt / 0.11;
     ghosts = ghosts.filter(g => g.t < 1);
     shake = Math.max(0, shake - dt * 40);
+  }
+
+  /** Traînées de chute : émises tant que l'arme tombe franchement. */
+  function emitTrails(dt) {
+    const kind = store.data.trail;
+    for (const it of items.values()) {
+      const b = it.body;
+      const falling = b.velocity.y > 1.5 && b.speed > 3;
+      if (kind === 'laser') {
+        if (!it.trail) it.trail = [];
+        if (falling) it.trail.push({ x: b.position.x, y: b.position.y, t: rt });
+        while (it.trail.length && rt - it.trail[0].t > 0.35) it.trail.shift();
+        continue;
+      }
+      if (!falling || kind === 'none') continue;
+      const g = geo(it.level);
+      if (kind === 'smoke' && Math.random() < dt * 30) {
+        particles.push({ type: 'puff', x: b.position.x + (Math.random() - 0.5) * g.hw, y: b.position.y - g.hh * 0.4,
+          vx: (Math.random() - 0.5) * 20, vy: -25, size: 4 + Math.random() * 4, rot: 0, vr: 0, t: 0, life: 0.7 });
+      } else if (kind === 'sparks' && Math.random() < dt * 45) {
+        particles.push({ type: 'star', x: b.position.x + (Math.random() - 0.5) * g.hw * 1.2, y: b.position.y - g.hh * 0.3,
+          vx: (Math.random() - 0.5) * 70, vy: -30 - Math.random() * 40, size: 2 + Math.random() * 2.2, rot: Math.random() * 6,
+          vr: 8, color: ['#ffe27a', '#fff6c8', '#ffb800'][(Math.random() * 3) | 0], t: 0, life: 0.45 });
+      }
+    }
+  }
+
+  /** Faisceau laser rémanent derrière les armes qui tombent. */
+  function drawLasers() {
+    ctx.lineCap = 'round';
+    for (const it of items.values()) {
+      const pts = it.trail;
+      if (!pts || pts.length < 2) continue;
+      for (let i = 1; i < pts.length; i++) {
+        const a = 1 - (rt - pts[i].t) / 0.35;
+        if (a <= 0) continue;
+        ctx.strokeStyle = `rgba(255,60,200,${0.35 * a})`;
+        ctx.lineWidth = 14 * a;
+        ctx.beginPath(); ctx.moveTo(pts[i - 1].x, pts[i - 1].y); ctx.lineTo(pts[i].x, pts[i].y); ctx.stroke();
+        ctx.strokeStyle = `rgba(0,240,255,${0.9 * a})`;
+        ctx.lineWidth = 5 * a;
+        ctx.stroke();
+        ctx.strokeStyle = `rgba(255,255,255,${a})`;
+        ctx.lineWidth = 1.8 * a;
+        ctx.stroke();
+      }
+    }
   }
 
   /** Ressort amorti : l'écrasement revient à la forme d'origine avec un rebond de gelée. */
@@ -798,6 +933,7 @@
 
     drawTankBack();
     if (items && raster.length) {
+      if (store.data.trail === 'laser') drawLasers();
       for (const it of items.values()) drawItem(it, true);
       for (const it of items.values()) drawItem(it);
       for (const g of ghosts) drawGhost(g);
@@ -892,7 +1028,29 @@
     }
   }
 
+  /** Jauge latérale : vert → jaune → rouge clignotant à l'approche de la ligne rouge. */
+  let gauge = 0;
+  function drawGauge() {
+    let top = TANK_B;
+    if (items) for (const it of items.values()) {
+      if (!it.merging && gt - it.born > 0.8) top = Math.min(top, it.body.bounds.min.y);
+    }
+    const target = Math.max(0, Math.min(1, (TANK_B - top) / (TANK_B - TANK_TOP)));
+    gauge += (target - gauge) * 0.08;
+    const x = TANK_R - 9, y0 = TANK_TOP + 8, y1 = TANK_B - 40, h = (y1 - y0) * gauge;
+    ctx.fillStyle = 'rgba(120,110,140,0.14)';
+    roundRectPath(x, y0, 5, y1 - y0, 2.5);
+    ctx.fill();
+    if (h < 1) return;
+    const hue = 120 - 120 * Math.min(1, gauge / 0.9);
+    const blink = gauge > 0.82 ? 0.45 + 0.55 * Math.abs(Math.sin(rt * 9)) : 1;
+    ctx.fillStyle = `hsla(${hue}, 85%, 52%, ${blink})`;
+    roundRectPath(x, y1 - h, 5, h, 2.5);
+    ctx.fill();
+  }
+
   function drawTankFront() {
+    if (state === 'play' || state === 'pause') drawGauge();
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     if (T.glow) {
@@ -1062,6 +1220,13 @@
   function drawParticles() {
     for (const p of particles) {
       const k = p.t / p.life;
+      if (p.type === 'puff') {
+        ctx.fillStyle = `rgba(160,160,172,${0.38 * (1 - k)})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (1 + k * 1.6), 0, Math.PI * 2);
+        ctx.fill();
+        continue;
+      }
       if (p.type === 'ring') {
         const e = 1 - Math.pow(1 - k, 3);
         ctx.strokeStyle = `rgba(${T.ring},${0.9 * (1 - k)})`;
@@ -1171,6 +1336,7 @@
     if (state !== 'pause') {
       if (items) updateSquish(dt);
       updateFx(dt);
+      if (state === 'play' && items) emitTrails(dt);
       if (state === 'play' && store.data.skin === 'gold' && items && items.size && Math.random() < dt * 4) {
         const all = [...items.values()], it = all[(Math.random() * all.length) | 0], g = geo(it.level);
         particles.push({
@@ -1611,61 +1777,81 @@
   }
 
   // ------------------------------------------------------------ boutique
-  let shopTab = 'themes';
+  let shopTab = 'decor';
+  const fmt = n => n.toLocaleString('fr-FR');
+
+  // Aperçus des traînées (petites vignettes SVG).
+  const TRAIL_PREVIEW = {
+    none: '<path d="M32 10v30" stroke="#b9aecb" stroke-width="3" stroke-dasharray="3 5" stroke-linecap="round"/>',
+    smoke: [[30, 14, 6], [36, 24, 7], [28, 33, 8]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#a9a9b6" opacity=".6"/>`).join(''),
+    sparks: [[24, 12], [38, 18], [28, 26], [40, 32], [22, 36]].map(([x, y]) => `<path d="M${x} ${y - 4}l1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2z" fill="#ffc928"/>`).join(''),
+    laser: '<path d="M32 6v36" stroke="#ff3cc8" stroke-width="10" stroke-linecap="round" opacity=".35"/><path d="M32 6v36" stroke="#00f0ff" stroke-width="4" stroke-linecap="round"/><path d="M32 6v36" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>'
+  };
+
+  function shopPreview(cat, key) {
+    if (cat === 'decor') return `<span class="swatch" data-t="${key}"></span>`;
+    if (cat === 'skins') return `<span class="prev"><img src="${svgURL(6, 0, true, 120, 120, key)}" alt=""></span>`;
+    if (cat === 'trails') return `<span class="prev"><svg viewBox="0 0 64 64">${TRAIL_PREVIEW[key]}<image href="${svgURL(0, 0, true, 60, 60)}" x="18" y="34" width="28" height="28"/></svg></span>`;
+    return `<button class="prev play" type="button" aria-label="Écouter ${SFX_PACKS[key].name}">▶</button>`;
+  }
 
   function renderShop() {
-    $('shop-coins').textContent = store.data.coins.toLocaleString('fr-FR');
+    $('shop-coins').textContent = fmt(store.data.coins);
     document.querySelectorAll('.shop-tab').forEach(t => {
       const on = t.dataset.tab === shopTab;
       t.classList.toggle('active', on);
       t.setAttribute('aria-selected', String(on));
     });
+    const cat = CATALOG[shopTab];
     const list = $('shop-list');
     list.innerHTML = '';
-    const isTheme = shopTab === 'themes';
-    const order = isTheme ? THEME_ORDER : SKIN_ORDER;
-    order.forEach(key => {
-      const art = isTheme ? THEMES[key] : SKINS[key];
-      const owned = (isTheme ? store.data.ownedThemes : store.data.ownedSkins).includes(key);
-      const equipped = (isTheme ? store.data.theme : store.data.skin) === key;
+    cat.order.forEach(key => {
+      const art = cat.items[key];
+      const owned = store.data[cat.owned].includes(key);
+      const equipped = store.data[cat.eq] === key;
       const missing = art.price - store.data.coins;
       const card = document.createElement('div');
       card.className = 'shop-card' + (equipped ? ' equipped' : '');
-      const preview = isTheme
-        ? `<span class="swatch" data-t="${key}"></span>`
-        : `<span class="skin-prev"><img src="${svgURL(6, 0, true, 120, 120, key)}" alt=""></span>`;
       let action;
       if (equipped) action = '<span class="badge-equipped">✓ Équipé</span>';
-      else if (owned) action = '<button class="btn-mini select" type="button">Sélectionner</button>';
-      else if (missing <= 0) action = `<button class="btn-mini buy" type="button">Acheter <i class="coin-ico"></i>${art.price.toLocaleString('fr-FR')}</button>`;
-      else action = `<button class="btn-mini locked" type="button" disabled><i class="coin-ico"></i>${art.price.toLocaleString('fr-FR')}</button><small class="missing">Il manque ${missing.toLocaleString('fr-FR')}</small>`;
-      card.innerHTML = `${preview}<span class="shop-info"><b>${art.name}</b><small>${art.price ? art.desc : 'Gratuit · ' + art.desc}</small></span><span class="shop-action">${action}</span>`;
-      const btn = card.querySelector('button:not([disabled])');
-      if (btn) btn.addEventListener('click', () => (owned ? equip(isTheme, key) : buy(isTheme, key)));
+      else if (owned) action = '<button class="btn-mini choose" type="button">Choisir</button>';
+      else if (missing <= 0) action = `<button class="btn-mini price" type="button"><i class="coin-ico"></i>${fmt(art.price)}</button>`;
+      else action = `<button class="btn-mini price" type="button" disabled><i class="coin-ico"></i>${fmt(art.price)}</button><small class="missing">Il manque ${fmt(missing)}</small>`;
+      card.innerHTML = `${shopPreview(shopTab, key)}<span class="shop-info"><b>${art.name}</b><small>${art.price ? art.desc : 'Gratuit · ' + art.desc}</small></span><span class="shop-action">${action}</span>`;
+      const btn = card.querySelector('.shop-action button:not([disabled])');
+      if (btn) btn.addEventListener('click', () => (owned ? equip(shopTab, key) : buy(shopTab, key)));
+      const play = card.querySelector('.play');
+      if (play) play.addEventListener('click', () => previewSfx(key));
       list.appendChild(card);
     });
   }
 
-  function buy(isTheme, key) {
-    const art = isTheme ? THEMES[key] : SKINS[key];
+  /** Joue un échantillon d'un pack de sons sans l'équiper. */
+  function previewSfx(key) {
+    A.unlock();
+    const prev = A.pack;
+    A.pack = key;
+    A.plop(1);
+    setTimeout(() => { A.pack = key; A.pop(4, 1); A.pack = prev; }, 260);
+    A.pack = prev;
+  }
+
+  function buy(cat, key) {
+    const art = CATALOG[cat].items[key];
     if (store.data.coins < art.price) return;
     store.data.coins -= art.price;
-    (isTheme ? store.data.ownedThemes : store.data.ownedSkins).push(key);
+    store.data[CATALOG[cat].owned].push(key);
     A.jingle();
     Haptics.pulse([20, 40, 20]);
-    equip(isTheme, key, true);
+    equip(cat, key, true);
     toast(null, art.name + ' débloqué !', 'shop');
   }
 
-  function equip(isTheme, key, silent) {
-    if (isTheme) {
-      store.data.theme = key;
-      applyTheme(key);
-    } else {
-      store.data.skin = key;
-      buildRaster();
-      updateNext();
-    }
+  function equip(cat, key, silent) {
+    store.data[CATALOG[cat].eq] = key;
+    if (cat === 'decor') applyTheme(key);
+    else if (cat === 'skins') { buildRaster(); updateNext(); }
+    else if (cat === 'sfx') A.pack = key;
     store.save();
     if (!silent) A.click();
     updateCoins();
@@ -1739,13 +1925,14 @@
   // Accès : 3 taps rapides sur la carte du score ou sur le titre, puis code PIN.
   // Le PIN est vérifié côté client : il protège des curieux, pas d'un vrai attaquant.
   const ADMIN_PIN = '210707';
-  let pin = '', taps = [];
+  let pin = '', taps = 0, lastTap = 0;
 
+  /** 3 taps d'affilée, chacun à moins de 500 ms du précédent. */
   function secretTap() {
     const now = performance.now();
-    taps = taps.filter(t => now - t < 650);
-    taps.push(now);
-    if (taps.length >= 3) { taps = []; openPin(); }
+    taps = now - lastTap < 500 ? taps + 1 : 1;
+    lastTap = now;
+    if (taps >= 3) { taps = 0; openPin(); }
   }
   $('score-box').addEventListener('click', secretTap);
   document.querySelector('.title').addEventListener('click', secretTap);
@@ -1780,90 +1967,189 @@
   document.querySelectorAll('#pin-pad button').forEach(b => b.addEventListener('click', () => pinKey(b.dataset.k)));
   $('pin-cancel').addEventListener('click', closePanel);
 
+  let admTab = 'eco';
+  const inGame = () => !!items && (state === 'play' || state === 'pause');
+
   function renderAdmin() {
+    document.querySelectorAll('.adm-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === admTab));
+    document.querySelectorAll('.adm-sec').forEach(sec => { sec.hidden = sec.dataset.tab !== admTab; });
     $('adm-coins').value = store.data.coins;
     $('adm-score').value = score;
     $('adm-best').value = store.data.best || 0;
-    $('adm-gravity').value = tuning.gravity;
-    $('adm-rest').value = tuning.restitution;
-    $('adm-gravity-v').textContent = tuning.gravity.toFixed(2);
-    $('adm-rest-v').textContent = tuning.restitution.toFixed(2);
+    document.querySelectorAll('.adm-mult button').forEach(b => b.classList.toggle('active', +b.dataset.m === tuning.scoreMult));
     const sel = $('adm-weapon');
-    if (!sel.options.length) ITEMS.forEach((it, i) => sel.add(new Option(`${i + 1}. ${it.name}`, i)));
-    const inGame = !!items && (state === 'play' || state === 'pause');
-    document.querySelectorAll('.adm-ingame').forEach(b => { b.disabled = !inGame; });
+    if (!sel.options.length) ITEMS.forEach((it, k) => sel.add(new Option(`${String(k + 1).padStart(2, '0')} · ${it.name}`, k)));
+    for (const [id, key, dec] of [['adm-gravity', 'gravity', 2], ['adm-rest', 'restitution', 2], ['adm-air', 'frictionAir', 3], ['adm-fric', 'friction', 2]]) {
+      $(id).value = tuning[key];
+      $(id + '-v').textContent = tuning[key].toFixed(dec);
+    }
+    $('adm-god').checked = tuning.god;
+    $('adm-free').checked = tuning.freePowers;
+    document.querySelectorAll('.adm-ingame').forEach(b => { b.disabled = !inGame(); });
+    $('adm-coins-now').textContent = fmt(store.data.coins);
   }
 
-  const admDone = msg => { A.click(); toast(null, msg, 'shop'); renderAdmin(); };
+  const admOk = msg => { A.click(); Haptics.pulse(10, 0.4); flashAdmin(msg); renderAdmin(); };
+  let admMsgTimer = 0;
+  function flashAdmin(msg) {
+    const el = $('adm-status');
+    el.textContent = '› ' + msg;
+    el.classList.add('show');
+    clearTimeout(admMsgTimer);
+    admMsgTimer = setTimeout(() => el.classList.remove('show'), 1800);
+  }
+
+  document.querySelectorAll('.adm-tab').forEach(t => t.addEventListener('click', () => { admTab = t.dataset.tab; A.click(); renderAdmin(); }));
+
+  // --- Économie & stats
   const setCoins = n => {
     store.data.coins = Math.max(0, Math.min(999999999, Math.floor(n) || 0));
     store.save();
     updateCoins(true);
-    admDone('Solde : ' + store.data.coins.toLocaleString('fr-FR') + ' douilles');
+    admOk('Douilles = ' + fmt(store.data.coins));
   };
-  $('adm-coins-apply').addEventListener('click', () => setCoins(+$('adm-coins').value));
-  $('adm-coins-10k').addEventListener('click', () => setCoins(store.data.coins + 10000));
-  $('adm-coins-max').addEventListener('click', () => setCoins(999999));
-  $('adm-unlock').addEventListener('click', () => {
-    store.data.ownedThemes = [...THEME_ORDER];
-    store.data.ownedSkins = [...SKIN_ORDER];
-    store.save();
-    updateCoins();
-    admDone('Boutique entièrement débloquée');
-  });
-  $('adm-weapon-now').addEventListener('click', () => {
-    dropper.level = +$('adm-weapon').value;
-    dropper.ready = true;
-    dropper.appear = 0;
-    markReached(dropper.level);
-    admDone('En main : ' + ITEMS[dropper.level].name);
-  });
-  $('adm-weapon-next').addEventListener('click', () => {
-    nextLevel = +$('adm-weapon').value;
-    markReached(nextLevel);
-    updateNext();
-    admDone('Suivant : ' + ITEMS[nextLevel].name);
-  });
-  $('adm-score-apply').addEventListener('click', () => {
+  $('adm-coins-set').addEventListener('click', () => setCoins(+$('adm-coins').value));
+  document.querySelectorAll('[data-coins]').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.coins;
+    setCoins(v[0] === '+' ? store.data.coins + +v.slice(1) : +v);
+  }));
+  $('adm-score-set').addEventListener('click', () => {
     score = shownScore = Math.max(0, Math.floor(+$('adm-score').value) || 0);
     updateHUD(true);
     updatePowers();
-    admDone('Score : ' + score.toLocaleString('fr-FR'));
+    admOk('Score = ' + fmt(score));
   });
-  $('adm-best-apply').addEventListener('click', () => {
+  $('adm-best-set').addEventListener('click', () => {
     store.data.best = Math.max(0, Math.floor(+$('adm-best').value) || 0);
     store.save();
     updateHUD(true);
     $('start-best').textContent = store.data.best;
-    admDone('Record : ' + store.data.best.toLocaleString('fr-FR'));
+    admOk('Record = ' + fmt(store.data.best));
   });
-  const setGravity = g => {
-    tuning.gravity = g;
-    if (engine) engine.gravity.y = g;
-    $('adm-gravity').value = g;
-    $('adm-gravity-v').textContent = g.toFixed(2);
-  };
-  $('adm-gravity').addEventListener('input', e => setGravity(+e.target.value));
-  $('adm-grav-normal').addEventListener('click', () => { setGravity(1.35); A.click(); });
-  $('adm-grav-moon').addEventListener('click', () => { setGravity(0.22); A.click(); });
-  $('adm-rest').addEventListener('input', e => {
-    tuning.restitution = BODY_OPTS.restitution = +e.target.value;
-    if (items) for (const it of items.values()) it.body.restitution = tuning.restitution;
-    $('adm-rest-v').textContent = tuning.restitution.toFixed(2);
+  document.querySelectorAll('.adm-mult button').forEach(b => b.addEventListener('click', () => {
+    tuning.scoreMult = +b.dataset.m;
+    admOk('Multiplicateur de score x' + tuning.scoreMult);
+  }));
+
+  // --- Sandbox & spawner
+  $('adm-place').addEventListener('click', () => {
+    dropper.level = +$('adm-weapon').value;
+    dropper.ready = true;
+    dropper.appear = 0;
+    markReached(dropper.level);
+    admOk(ITEMS[dropper.level].name + ' placé sous le doigt');
+  });
+  $('adm-drop').addEventListener('click', () => {
+    const lvl = +$('adm-weapon').value, g = geo(lvl);
+    addItem(lvl, VIEW_W / 2, Math.min(DROP_Y, TANK_TOP - g.hh - 8), { center: true, dropped: true, vel: { x: 0, y: 2 } });
+    markReached(lvl);
+    A.plop(Math.min(lvl, 4));
+    admOk(ITEMS[lvl].name + ' largué au centre');
+  });
+  $('adm-rain').addEventListener('click', () => {
+    for (let k = 0; k < 15; k++) {
+      const g = geo(0);
+      addItem(0, TANK_L + g.hw + 4 + Math.random() * (TANK_R - TANK_L - 2 * g.hw - 8), -20 - k * 28,
+        { center: true, dropped: true, angle: (Math.random() - 0.5) * 1.5, vel: { x: 0, y: 3 } });
+    }
+    admOk('Pluie de 15 munitions');
   });
   $('adm-clear').addEventListener('click', () => {
-    if (!items) return;
     for (const it of [...items.values()]) removeItem(it);
     dangerT = 0;
-    admDone('Cuve nettoyée');
+    admOk('Cuve vidée');
   });
+
+  // --- Moteur physique (temps réel)
+  const applyPhysics = () => {
+    if (engine) engine.gravity.y = tuning.gravity;
+    syncCeiling();
+    BODY_OPTS.restitution = tuning.restitution;
+    BODY_OPTS.frictionAir = tuning.frictionAir;
+    BODY_OPTS.friction = tuning.friction;
+    if (items) for (const it of items.values()) {
+      it.body.restitution = tuning.restitution;
+      it.body.frictionAir = tuning.frictionAir;
+      it.body.friction = tuning.friction;
+    }
+  };
+  for (const [id, key, dec] of [['adm-gravity', 'gravity', 2], ['adm-rest', 'restitution', 2], ['adm-air', 'frictionAir', 3], ['adm-fric', 'friction', 2]]) {
+    $(id).addEventListener('input', e => {
+      tuning[key] = +e.target.value;
+      $(id + '-v').textContent = tuning[key].toFixed(dec);
+      applyPhysics();
+    });
+  }
+  document.querySelectorAll('[data-grav]').forEach(b => b.addEventListener('click', () => {
+    tuning.gravity = +b.dataset.grav;
+    applyPhysics();
+    admOk('Gravité ' + b.textContent.trim().toLowerCase());
+  }));
+  $('adm-god').addEventListener('change', e => {
+    tuning.god = e.target.checked;
+    if (tuning.god) dangerT = 0;
+    admOk(tuning.god ? 'God Mode : ligne rouge désactivée' : 'God Mode désactivé');
+  });
+
+  // --- Déverrouillages & triche
+  $('adm-unlock').addEventListener('click', () => {
+    for (const cat of Object.values(CATALOG)) store.data[cat.owned] = [...cat.order];
+    store.save();
+    updateCoins();
+    admOk('Boutique entièrement débloquée (4 rayons)');
+  });
+  $('adm-free').addEventListener('change', e => {
+    tuning.freePowers = e.target.checked;
+    admOk(tuning.freePowers ? 'Pouvoirs illimités' : 'Pouvoirs normaux');
+  });
+  // Déclenche un pouvoir tout de suite, sans consommer de charge.
+  const firePower = kind => {
+    if (!inGame()) return;
+    closePanel();
+    if (kind === 'c4') {
+      powers.c4++;                 // charge offerte, consommée par l'explosion
+      usePower('c4');
+    } else {
+      const free = tuning.freePowers;
+      tuning.freePowers = true;
+      powers[kind] = Math.max(powers[kind], 1);
+      usePower(kind);
+      tuning.freePowers = free;
+    }
+    updatePowers();
+  };
+  $('adm-c4').addEventListener('click', () => firePower('c4'));
+  $('adm-shake').addEventListener('click', () => firePower('shake'));
   $('adm-reset').addEventListener('click', () => {
-    if (!confirm('Effacer toute la progression (record, douilles, achats, codex) ?')) return;
+    if (!confirm('Reset usine : effacer record, douilles, achats, codex et réglages ?')) return;
     try { localStorage.removeItem(STORE_KEY); } catch (e) { /* ignore */ }
     store.save = store.saveSoon = () => {};    // empêche la sauvegarde de réécrire les données
     location.reload();
   });
+
+  // Fermeture : croix ou glissé vers le bas sur l'en-tête.
   $('adm-close').addEventListener('click', closePanel);
+  (() => {
+    const deck = $('admin-deck');
+    let y0 = null, dy = 0;
+    deck.addEventListener('touchstart', e => {
+      if (!e.target.closest('.adm-head')) return;
+      y0 = e.touches[0].clientY; dy = 0;
+      deck.style.transition = 'none';
+    }, { passive: true });
+    deck.addEventListener('touchmove', e => {
+      if (y0 == null) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      deck.style.transform = `translateY(${dy}px)`;
+    }, { passive: true });
+    deck.addEventListener('touchend', () => {
+      if (y0 == null) return;
+      y0 = null;
+      deck.style.transition = '';
+      deck.style.transform = '';
+      if (dy > 90) closePanel();
+    });
+  })();
 
   // ---------------------------------------------------------- démarrage
   function initStartScreen() {

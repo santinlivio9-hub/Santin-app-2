@@ -44,8 +44,13 @@ Trois boutons sous la cuve, une charge chacun au départ, puis rechargés avec l
 
 ## Économie : Douilles d'Or & boutique
 - Chaque fusion rapporte des douilles selon l'arme créée (+1 à +25, +50 pour deux Graals), plus un bonus de fin de partie (1 douille / 100 points). Le solde est sauvegardé et affiché dans le bouton boutique du HUD.
-- **Boutique tactique** (bouton panier) — rayon *Fonds* : Pastel Chill (gratuit), Établi d'Armurier (250), Blueprint (600), Vision Nocturne (600), Stand Cyberpunk (1 200). Rayon *Finitions* : Classique Chibi (gratuit), Camo Militaire Urbain (400), Plaqué Or Brillant (1 500).
-- États : « Acheter » (solde suffisant), prix grisé + « Il manque N », « Sélectionner » (possédé), badge « Équipé ».
+- **Boutique tactique** (bouton panier), 4 rayons :
+  - *Décors* : Pastel Doux (gratuit), Établi d'Armurier (350), Vision Nocturne (750), Blueprint (750), Stand Cyberpunk (1 500), Camo Tactique désert (2 200).
+  - *Finitions* : Style Chibi Classique (gratuit), Camouflage Forêt / Urbain (500), Plaqué Or 24K (2 000), Néon Glow / Tron (3 500).
+  - *Traînées de chute* : Aucune, Fumée de poudre (400), Étincelles dorées (900), Laser néon (1 800).
+  - *Sons* : Cartoon Plop (défaut), Réaliste & Mécanique (800), Arcade 8-Bit (1 200), avec écoute avant achat.
+- États : badge vert « Équipé », bouton bleu « Choisir » (possédé), bouton doré avec le prix (grisé + « Il manque N » si le solde ne suffit pas). Tout l'équipement est sauvegardé.
+- Les douilles gagnées s'envolent de la fusion vers le compteur du HUD. Une jauge latérale dans la cuve passe du vert au rouge clignotant à l'approche de la ligne rouge.
 
 ## Sensations
 - Squash & stretch le long de l'axe d'impact (jusqu'à 15 %), ressort peu amorti qui oscille avant de revenir.
@@ -59,10 +64,14 @@ Sur l'écran de fin, « Partager mon score » envoie une image générée (score
 Touchez une arme de la barre d'évolution pour ouvrir sa fiche carte postale : anecdote chibi, date de découverte, nombre d'obtentions et record de déblocage (temps le plus court pour l'obtenir dans une partie).
 
 ## Vibrations
-`navigator.vibrate` sur Android (15 ms au lâcher, double impulsion de 40 ms à la fusion). Safari iOS n'implémente pas cette API : le jeu utilise à la place le retour haptique natif des interrupteurs (iOS 18+), en mode « au mieux » : il dépend de la version d'iOS et peut ne pas se déclencher hors d'un geste du joueur.
+- Android / navigateurs compatibles : `navigator.vibrate` (15 ms au lâcher, `[15, 30, 20]` à la fusion).
+- iPhone (Safari n'a pas `navigator.vibrate`) : approche hybride, au lâcher, aux impacts et aux fusions :
+  1. clic du Taptic Engine via un interrupteur natif `<input switch>` invisible (iOS 18+, ressenti surtout pendant un toucher) ;
+  2. impulsion sub-basse : sinus 35 Hz de 30 à 50 ms à attaque sèche via Web Audio, qui fait légèrement vibrer le châssis. Elle passe par le haut-parleur : coupée en mode silencieux, et faible car un haut-parleur de téléphone restitue mal 35 Hz.
+- Désactivable dans Pause → Vibrations.
 
 ## Menu développeur
-Un menu admin caché (accès par geste secret + code PIN, voir `game.js`) permet de régler les douilles, tout débloquer, forcer l'arme en main ou suivante, modifier score et record, ajuster gravité et rebond en direct, vider la cuve et remettre la sauvegarde à zéro. Le code est vérifié dans le navigateur : il protège des curieux, pas d'une personne qui lit le code source.
+Un « Command Deck » caché (accès par geste secret + code PIN, voir `game.js`), en 4 onglets : *Économie* (douilles, score, high score, multiplicateur x1 à x10), *Sandbox* (placer ou larguer n'importe quelle arme, pluie de 15 munitions, vider la cuve), *Physique* (gravité de -1,5 à 3 avec préréglages Terrestre / Lunaire / Inversée / Zéro, rebond, frictions, God Mode), *Triche* (tout débloquer, pouvoirs illimités, C4 ou Secousse immédiats, reset usine). Fermeture par la croix ou en glissant l'en-tête vers le bas. Le code est vérifié dans le navigateur : il protège des curieux, pas d'une personne qui lit le code source.
 
 ## Structure
 

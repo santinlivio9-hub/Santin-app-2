@@ -24,6 +24,7 @@
       this.ctx = null;
       this.musicOn = true;
       this.sfxOn = true;
+      this.pack = 'cartoon';         // cartoon | meca | arcade
       this.playing = false;
       this.step = 0;
       this.nextTime = 0;
@@ -375,27 +376,62 @@
     plop(level = 0) {
       if (!this._ok()) return;
       const t = this.ctx.currentTime;
+      if (this.pack === 'meca') {
+        // Encliquetage sec : clic métallique + petit choc sourd.
+        this._burst(t, 3200, 'bandpass', 0.025, 0.22);
+        this._tone('square', 2400, 1800, t, 0.03, 0.05);
+        this._tone('sine', 150 - level * 8, 70, t + 0.01, 0.09, 0.22);
+        return;
+      }
+      if (this.pack === 'arcade') {
+        this._tone('square', 880 - level * 60, 300, t, 0.07, 0.09);
+        return;
+      }
       const base = 560 - level * 45 + Math.random() * 40;
       this._tone('sine', base * 1.5, base * 0.55, t, 0.16, 0.32);
       this._burst(t, 1400, 'bandpass', 0.03, 0.06);
     }
 
-    /** Petit rebond mou quand une arme touche le tas. */
+    /** Petit rebond quand une arme touche le tas. */
     land(strength = 0.5, level = 0) {
       if (!this._ok()) return;
-      const t = this.ctx.currentTime;
+      const t = this.ctx.currentTime, v = Math.min(1, strength);
+      if (this.pack === 'meca') {
+        this._burst(t, 2200, 'bandpass', 0.02, 0.05 + 0.12 * v);
+        this._tone('sine', 110, 60, t, 0.07, 0.08 + 0.12 * v);
+        return;
+      }
+      if (this.pack === 'arcade') {
+        this._tone('triangle', 260 - level * 10, 180, t, 0.05, 0.05 + 0.08 * v);
+        return;
+      }
       const f = 210 - level * 12;
-      this._tone('sine', f, f * 0.6, t, 0.12, 0.06 + 0.12 * Math.min(1, strength));
+      this._tone('sine', f, f * 0.6, t, 0.12, 0.06 + 0.12 * v);
     }
 
     /**
-     * "Pop" pétillant de fusion — plus grave pour les grosses armes.
+     * Son de fusion — plus grave pour les grosses armes.
      * `combo` (1, 2, 3…) monte la fusion d'un demi-ton par étape de réaction en chaîne.
      */
     pop(level = 0, combo = 1) {
       if (!this._ok()) return;
       const t = this.ctx.currentTime;
       const semi = Math.pow(2, (combo - 1) / 12);
+      const note = 81 - level + (combo - 1);
+      if (this.pack === 'meca') {
+        // Culasse : recul + verrouillage, avec résonance d'acier.
+        this._burst(t, 2600, 'highpass', 0.03, 0.25);
+        this._burst(t + 0.07, 3600, 'bandpass', 0.025, 0.3);
+        this._tone('triangle', 1700 * semi, 1650 * semi, t + 0.07, 0.18, 0.06);
+        this._tone('triangle', 2650 * semi, 2600 * semi, t + 0.07, 0.12, 0.035);
+        this._tone('sine', 120 - level * 5, 55, t, 0.16, 0.28);
+        return;
+      }
+      if (this.pack === 'arcade') {
+        // Arpège 8-bit, monte d'un demi-ton par combo.
+        [0, 4, 7, 12].forEach((n, i) => this._tone('square', mtof(note - 12 + n), mtof(note - 12 + n), t + i * 0.045, 0.06, 0.07));
+        return;
+      }
       const base = 820 * Math.pow(0.9, level) * semi;
       this._tone('sine', base * 0.6, base * 1.5, t, 0.14, 0.34);
       this._tone('triangle', base * 1.2, base * 2.2, t + 0.03, 0.1, 0.08);
@@ -408,9 +444,28 @@
       }
       if (level >= 5) this._tone('sine', base * 0.35, base * 0.22, t, 0.35, 0.18);
       // Note musicale de la fusion : grave pour les grosses armes, +1 demi-ton par combo.
-      const note = 81 - level + (combo - 1);
       this._tone('triangle', mtof(note), mtof(note), t + 0.04, 0.45, 0.07 + Math.min(0.05, (combo - 1) * 0.015));
       this._tone('sine', mtof(note + 12), mtof(note + 12), t + 0.04, 0.3, 0.03);
+    }
+
+    /**
+     * Impulsion "haptique" acoustique : sinus 35 Hz très court à attaque sèche.
+     * Sur iPhone, le haut-parleur fait légèrement vibrer le châssis.
+     * Passe en direct vers la sortie (ni compresseur, ni volume des bruitages).
+     */
+    thump(strength = 1) {
+      if (!this.ctx || this.ctx.state !== 'running') return;
+      const ctx = this.ctx, t = ctx.currentTime, dur = 0.03 + 0.02 * Math.min(1, strength);
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(35, t);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.95 * Math.min(1, strength), t + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(t);
+      o.stop(t + dur + 0.01);
     }
 
     /** Échange swap : petit "whoosh" aller-retour. */
