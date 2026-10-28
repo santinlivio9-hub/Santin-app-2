@@ -1,7 +1,10 @@
 /* =========================================================================
-   Chibi Arsenal — sprites vectoriels (SVG inline)
-   Chaque arme est un petit personnage "chibi" posé sur une bulle de gelée.
-   viewBox centré : -100..100. La bulle (r = 96) correspond au corps physique.
+   Chibi Arsenal — sprites vectoriels (SVG inline) + hitboxes physiques
+   Chaque arme est dessinée directement, sans bulle : silhouette dodue,
+   contour prune, yeux expressifs. Les hitboxes (`hit`) sont exprimées dans
+   le même repère que le dessin pour que la physique colle à la silhouette :
+     ['r', x, y, w, h, arrondi, angle°]  rectangle (coin haut-gauche, rotation autour du centre)
+     ['c', cx, cy, r]                     cercle
    ========================================================================= */
 (function () {
   'use strict';
@@ -32,7 +35,7 @@
       }).join('');
     }
     const blush = [-1, 1].map(k =>
-      `<ellipse cx="${x + k * 23 * s}" cy="${y + 8 * s}" rx="${6.2 * s}" ry="${3.6 * s}" fill="#ff8fab" opacity=".65"/>`
+      `<ellipse cx="${x + k * 23 * s}" cy="${y + 8 * s}" rx="${6.2 * s}" ry="${3.6 * s}" fill="#ff8fab" opacity=".7"/>`
     ).join('');
     const my = y + 9 * s;
     let m;
@@ -57,31 +60,33 @@
     return `<g>${blush}${eyes}${m}</g>`;
   }
 
-  /** Petit reflet brillant sur une forme. */
+  /** Petit reflet brillant. */
   const shine = (x, y, w, h, rot = -20, op = 0.55) =>
     `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${h}" fill="#fff" opacity="${op}" transform="rotate(${rot} ${x} ${y})"/>`;
 
   /** Étincelle à 4 branches. */
   const sparkle = (x, y, r, fill = '#fff') =>
-    `<path d="M${x} ${y - r} Q${x + r * 0.18} ${y - r * 0.18} ${x + r} ${y} Q${x + r * 0.18} ${y + r * 0.18} ${x} ${y + r} Q${x - r * 0.18} ${y + r * 0.18} ${x - r} ${y} Q${x - r * 0.18} ${y - r * 0.18} ${x} ${y - r}Z" fill="${fill}"/>`;
+    `<path d="M${x} ${y - r} Q${x + r * 0.18} ${y - r * 0.18} ${x + r} ${y} Q${x + r * 0.18} ${y + r * 0.18} ${x} ${y + r} Q${x - r * 0.18} ${y + r * 0.18} ${x - r} ${y} Q${x - r * 0.18} ${y - r * 0.18} ${x} ${y - r}Z" fill="${fill}" stroke="${OL}" stroke-width="2"/>`;
 
-  // --------------------------------------------------------------- weapons
-  // Chaque fonction reçoit `closed` (yeux fermés pour le clignement).
-  const ART = [
-    // 1. Munition 9mm
-    c => `
-      <g transform="translate(0 4)">
+  // ----------------------------------------------------------------- armes
+  const ITEMS = [
+    {
+      name: 'Munition 9mm', short: '9mm', size: 46,
+      lore: 'La plus petite de la bande… et la plus rapide à s’énerver. Elle adore rouler sous les meubles et se cacher dans les poches.',
+      hit: [['r', -36, -6, 72, 64, 12], ['c', 0, -30, 30]],
+      art: c => `
         <path d="M-30 -2 C-30 -40 -14 -60 0 -62 C14 -60 30 -40 30 -2 Z" ${st('#ec8b5e')}/>
         ${shine(-12, -34, 6, 14, 20, 0.6)}
         <rect x="-32" y="-6" width="64" height="58" rx="14" ${st('#f7c84e')}/>
         <rect x="-36" y="44" width="72" height="14" rx="6" ${st('#e2a73a')}/>
         <rect x="-24" y="2" width="8" height="38" rx="4" fill="#fff" opacity=".45"/>
-        ${face(2, 18, 0.95, c, 'smile')}
-      </g>`,
-
-    // 2. Flashbang / fumigène
-    c => `
-      <g transform="translate(-2 6)">
+        ${face(2, 18, 0.95, c, 'smile')}`
+    },
+    {
+      name: 'Flashbang', short: 'Flash', size: 58,
+      lore: 'Timide, elle cligne des yeux sans arrêt et rougit dès qu’on la regarde. Quand elle éclate de rire… tout le monde est ébloui.',
+      hit: [['r', -34, -36, 68, 88, 20], ['r', -26, -50, 52, 18, 6], ['r', 30, -40, 12, 60, 5]],
+      art: c => `
         <path d="M14 -48 q30 0 28 30 l-6 44" ${line(14)}/>
         <path d="M14 -48 q30 0 28 30 l-6 44" ${line(7, '#d5dae3')}/>
         <circle cx="-30" cy="-52" r="12" fill="none" stroke="${OL}" stroke-width="10"/>
@@ -94,12 +99,13 @@
         <circle cx="10" cy="40" r="3.2" fill="${OL}" opacity=".35"/>
         <circle cx="22" cy="34" r="3.2" fill="${OL}" opacity=".35"/>
         ${shine(-20, -20, 6, 10, 0, 0.55)}
-        ${face(0, 18, 0.95, c, 'open')}
-      </g>`,
-
-    // 3. Pistolet Glock / Canik
-    c => `
-      <g transform="translate(2 6)">
+        ${face(0, 18, 0.95, c, 'open')}`
+    },
+    {
+      name: 'Glock', short: 'Glock', size: 74,
+      lore: 'Compact, fiable, toujours à l’heure. Il range ses munitions par couleur et fait la sieste dans les étuis.',
+      hit: [['r', -58, -48, 118, 62, 16], ['r', -54, -6, 48, 66, 12], ['r', -12, 0, 32, 28, 10]],
+      art: c => `
         <path d="M-50 -6 L-14 -6 L-6 46 Q-6 60 -20 60 L-40 60 Q-54 60 -54 46 Z" ${st('#545878')}/>
         <path d="M-44 14 l18 0 M-43 26 l20 0 M-42 38 l21 0" ${line(3, '#3f425c')}/>
         <path d="M-12 2 Q-12 28 12 26 L20 4" ${line(14)}/>
@@ -110,12 +116,13 @@
         <path d="M-48 -38 l0 22 M-40 -38 l0 22" ${line(3.5, '#5d6186')}/>
         <rect x="44" y="-40" width="10" height="8" rx="3" fill="${OL}"/>
         ${shine(-14, -40, 22, 4, 0, 0.5)}
-        ${face(8, -28, 1, c, 'cat')}
-      </g>`,
-
-    // 4. Revolver Magnum
-    c => `
-      <g transform="translate(-4 4)">
+        ${face(8, -28, 1, c, 'cat')}`
+    },
+    {
+      name: 'Revolver Magnum', short: 'Magnum', size: 92,
+      lore: 'Il fait tourner son gros barillet quand il réfléchit et raconte toujours la même histoire de cow-boy. Personne n’ose l’interrompre.',
+      hit: [['c', -6, -14, 34], ['r', -44, -44, 66, 50, 14], ['r', 18, -38, 66, 34, 10], ['r', -51, -1, 40, 64, 14, 12]],
+      art: c => `
         <path d="M-40 -2 Q-56 30 -50 56 Q-46 66 -32 64 L-18 62 Q-6 60 -10 46 Q-16 22 -4 0 Z" ${st('#cf8d5c')}/>
         <path d="M-36 14 q-6 18 -4 36" ${line(3.5, '#a86a40')}/>
         <path d="M-14 0 Q-12 26 10 24 L18 2" ${line(14)}/>
@@ -127,16 +134,18 @@
         <rect x="-44" y="-44" width="66" height="50" rx="16" ${st('#9ea2b5')}/>
         <circle cx="-6" cy="-14" r="34" ${st('#d4d7e4')}/>
         ${[0, 60, 120, 180, 240, 300].map(a => {
-          const r = 26, x = -6 + r * Math.cos(a * Math.PI / 180), y = -14 + r * Math.sin(a * Math.PI / 180);
+          const x = -6 + 26 * Math.cos(a * Math.PI / 180), y = -14 + 26 * Math.sin(a * Math.PI / 180);
           return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#9ea2b5"/>`;
         }).join('')}
         ${shine(-20, -32, 10, 5, -30, 0.7)}
-        ${face(-6, -15, 0.85, c, 'open')}
-      </g>`,
-
-    // 5. Pistolet-mitrailleur MP5
-    c => `
-      <g transform="translate(-2 4) rotate(-6)">
+        ${face(-6, -15, 0.85, c, 'open')}`
+    },
+    {
+      name: 'MP5', short: 'MP5', size: 110,
+      lore: 'Hyperactif, il mitraille des blagues à toute vitesse. S’il garde sa crosse rentrée, c’est pour faire des câlins plus serrés.',
+      hit: [['r', -44, -38, 86, 40, 14], ['r', 6, -44, 56, 12, 5], ['r', 34, -28, 48, 24, 10],
+            ['r', -68, -36, 24, 44, 7], ['r', 13, -5, 20, 58, 8, -19], ['r', -31, -6, 26, 50, 9, 8]],
+      art: c => `
         <path d="M4 -4 Q8 28 24 52 L42 42 Q28 22 24 -4 Z" ${st('#414c5d')}/>
         <path d="M-28 -6 L-8 -6 L-4 34 Q-6 44 -16 44 L-26 44 Q-34 42 -32 32 Z" ${st('#414c5d')}/>
         <rect x="-68" y="-36" width="14" height="44" rx="7" ${st('#414c5d')}/>
@@ -147,12 +156,14 @@
         <rect x="-44" y="-36" width="86" height="38" rx="16" ${st('#6d7c93')}/>
         <circle cx="-34" cy="-40" r="7" ${st('#56637a', 4)}/>
         ${shine(-10, -30, 20, 4, 0, 0.5)}
-        ${face(-2, -18, 0.82, c, 'smile')}
-      </g>`,
-
-    // 6. Fusil d'assaut HK416 / M4
-    c => `
-      <g transform="rotate(-12) scale(.95) translate(0 4)">
+        ${face(-2, -18, 0.82, c, 'smile')}`
+    },
+    {
+      name: 'HK416', short: 'HK416', size: 132,
+      lore: 'Premier de la classe, il range son paquetage au millimètre. Son chargeur banane ? Il jure que c’est son goûter.',
+      hit: [['r', -40, -32, 74, 34, 12], ['r', 30, -28, 58, 24, 9], ['r', -78, -28, 42, 42, 12],
+            ['r', -18, -52, 34, 22, 8], ['r', 3, 0, 22, 54, 8, -20], ['r', -33, -2, 24, 44, 8, 5]],
+      art: c => `
         <path d="M-6 0 Q-4 30 12 54 L32 44 Q18 22 18 0 Z" ${st('#6f5c48')}/>
         <path d="M-1 14 l16 -2 M3 26 l16 -3 M9 38 l15 -4" ${line(3, '#57473a')}/>
         <path d="M-30 -2 L-12 -2 L-8 34 Q-10 42 -20 42 L-28 42 Q-36 40 -34 32 Z" ${st('#8c7154')}/>
@@ -166,12 +177,13 @@
         <circle cx="14" cy="-42" r="5" fill="#ff86a8"/>
         <circle cx="13" cy="-44" r="1.8" fill="#fff"/>
         ${shine(-18, -26, 16, 3.5, 0, 0.55)}
-        ${face(-6, -14, 0.8, c, 'tongue')}
-      </g>`,
-
-    // 7. Fusil à pompe M4 tactique
-    c => `
-      <g transform="rotate(-10) scale(.95) translate(0 2)">
+        ${face(-6, -14, 0.8, c, 'tongue')}`
+    },
+    {
+      name: 'Fusil à pompe M4', short: 'Pompe', size: 152,
+      lore: 'Un grand cœur sous des airs bourrus. Il collectionne les cartouches rouges comme des bonbons et refuse de les partager.',
+      hit: [['r', -40, -38, 58, 40, 14], ['r', 8, -36, 80, 38, 11], ['r', -80, -30, 44, 54, 14], ['r', -33, 0, 26, 42, 9, 5]],
+      art: c => `
         <path d="M-38 -30 L-66 -22 Q-80 -18 -80 -6 L-80 14 Q-78 24 -66 22 L-38 6 Z" ${st('#4b4f63')}/>
         ${[-70, -61, -52].map(x =>
           `<rect x="${x}" y="-14" width="8" height="22" rx="3" ${st('#ff6b7d', 3)}/>` +
@@ -186,12 +198,14 @@
         <rect x="-40" y="-38" width="58" height="40" rx="14" ${st('#62677f')}/>
         <path d="M-32 -38 l6 -10 l8 10" ${st('#4b4f63', 4)}/>
         ${shine(-20, -32, 12, 3.5, 0, 0.5)}
-        ${face(-10, -18, 0.82, c, 'grin')}
-      </g>`,
-
-    // 8. Fusil de sniper lourd .50 BMG
-    c => `
-      <g transform="rotate(-16) scale(.9) translate(0 8)">
+        ${face(-10, -18, 0.82, c, 'grin')}`
+    },
+    {
+      name: 'Sniper .50 BMG', short: '.50 BMG', size: 172,
+      lore: 'Elle peut patienter des heures sans bouger… pour admirer les étoiles dans sa lunette géante. Ne la réveillez pas.',
+      hit: [['r', -82, -26, 106, 36, 12], ['r', 18, -16, 48, 12, 5], ['r', 62, -26, 30, 32, 10],
+            ['r', -48, -66, 100, 36, 15], ['r', -33, 4, 24, 38, 8, 5], ['r', -10, 4, 22, 22, 5], ['r', 24, 0, 34, 42, 6]],
+      art: c => `
         <path d="M38 -4 L26 40 M42 -4 L56 40" ${line(6)}/>
         <rect x="-78" y="-22" width="42" height="32" rx="12" ${st('#6d7f58')}/>
         <rect x="-82" y="-24" width="10" height="36" rx="5" ${st('#3e4456')}/>
@@ -210,12 +224,14 @@
         <ellipse cx="39" cy="-53" rx="2.5" ry="4" fill="#fff"/>
         <ellipse cx="-40" cy="-48" rx="8" ry="13" ${st('#4b5268')}/>
         ${shine(-14, -56, 18, 3.5, 0, 0.45)}
-        ${face(-10, -10, 0.72, c, 'smile')}
-      </g>`,
-
-    // 9. Mitrailleuse lourde Minigun
-    c => `
-      <g transform="rotate(-8) scale(.93) translate(4 0)">
+        ${face(-10, -10, 0.72, c, 'smile')}`
+    },
+    {
+      name: 'Minigun', short: 'Minigun', size: 190,
+      lore: 'Quand il est content, ses canons se mettent à tourner tout seuls. Il est TRÈS souvent content.',
+      hit: [['r', -64, -38, 66, 62, 20], ['r', -4, -40, 78, 58, 10], ['r', -76, -22, 16, 36, 7],
+            ['r', -74, 36, 46, 24, 10], ['r', -56, -56, 46, 20, 9]],
+      art: c => `
         <path d="M-30 22 Q-40 52 -70 56" ${line(18)}/>
         <path d="M-30 22 Q-40 52 -70 56" ${line(10, '#8b6b4a')}/>
         ${[[-32, 30], [-38, 42], [-48, 51], [-60, 55]].map(([x, y]) =>
@@ -227,17 +243,17 @@
         <rect x="-4" y="0" width="72" height="13" rx="6" ${st('#9196a8')}/>
         <rect x="18" y="-40" width="10" height="58" rx="5" ${st('#555a6c', 4)}/>
         <rect x="56" y="-40" width="10" height="58" rx="5" ${st('#555a6c', 4)}/>
-        <path d="M78 -32 q8 -4 10 6 M80 8 q8 4 10 -6" ${line(3.5, '#ffffff')}/>
         <path d="M-52 -34 Q-36 -64 -14 -34" ${line(14)}/>
         <path d="M-52 -34 Q-36 -64 -14 -34" ${line(7, '#555a6c')}/>
         <rect x="-64" y="-38" width="66" height="62" rx="22" ${st('#747a90')}/>
         ${shine(-46, -26, 12, 5, -25, 0.55)}
-        ${face(-30, -6, 1, c, 'open')}
-      </g>`,
-
-    // 10. Lance-roquettes RPG-7
-    c => `
-      <g transform="rotate(-14) scale(.9) translate(-2 2)">
+        ${face(-30, -6, 1, c, 'open')}`
+    },
+    {
+      name: 'RPG-7', short: 'RPG-7', size: 220,
+      lore: 'Sa tête toute ronde déborde d’idées explosives. Son rêve secret : devenir une montgolfière.',
+      hit: [['r', -90, -15, 124, 30, 10], ['c', 65, 0, 34], ['r', -64, 4, 24, 38, 8], ['r', -32, 4, 24, 34, 8]],
+      art: c => `
         <path d="M-56 4 L-42 4 L-40 34 Q-42 42 -50 42 L-56 42 Q-64 40 -62 32 Z" ${st('#5a6b4a')}/>
         <path d="M-24 4 L-10 4 L-8 30 Q-10 38 -18 38 L-24 38 Q-32 36 -30 28 Z" ${st('#5a6b4a')}/>
         <path d="M-90 -18 L-74 -10 L-74 10 L-90 18 Z" ${st('#5a6b4a')}/>
@@ -249,12 +265,13 @@
         <path d="M30 -8 C36 -12 40 -34 62 -34 C86 -34 98 -16 100 0 C98 16 86 34 62 34 C40 34 36 12 30 8 Z" ${st('#94b67e')}/>
         <path d="M98 -6 L106 0 L98 6 Z" ${st('#5a6b4a', 4)}/>
         ${shine(54, -22, 14, 6, -15, 0.55)}
-        ${face(62, 0, 1, c, 'cat')}
-      </g>`,
-
-    // 11. Le Graal : mini-tank ultra rondouillard
-    c => `
-      <g transform="scale(.86) translate(0 8)">
+        ${face(62, 0, 1, c, 'cat')}`
+    },
+    {
+      name: 'Mini-Tank Graal', short: 'Graal', size: 280,
+      lore: 'Le légendaire mini-tank. Il porte une couronne un peu trop petite et le sait très bien. C’est le plus câlin de tout l’arsenal.',
+      hit: [['r', -82, 8, 164, 44, 22], ['r', -78, -18, 158, 32, 10], ['c', 0, -26, 44], ['r', 26, -53, 68, 24, 7], ['r', -20, -96, 40, 26, 8]],
+      art: c => `
         <rect x="26" y="-48" width="58" height="14" rx="7" ${st('#7aa25f')}/>
         <rect x="80" y="-53" width="14" height="24" rx="5" ${st('#5f8548')}/>
         <path d="M-44 -14 Q-44 -70 0 -70 Q44 -70 44 -14 Z" ${st('#a6cc8a')}/>
@@ -267,64 +284,66 @@
           `<circle cx="${x}" cy="30" r="11" ${st('#a9aec0', 4)}/><circle cx="${x}" cy="30" r="3.5" fill="${OL}"/>`
         ).join('')}
         <path d="M58 -14 l3 7 l7 1 l-5 5 l1 7 l-6 -3 l-6 3 l1 -7 l-5 -5 l7 -1 z" fill="#ff9fbd" stroke="${OL}" stroke-width="2.5" stroke-linejoin="round"/>
+        ${sparkle(-34, -84, 7, '#fff6b0')}${sparkle(50, -76, 6)}
         ${shine(-24, -52, 12, 6, -30, 0.6)}
-        ${face(-2, -36, 1.25, c, 'grin')}
-      </g>`
+        ${face(-2, -36, 1.25, c, 'grin')}`
+    }
   ];
 
-  // ----------------------------------------------------------------- items
-  const ITEMS = [
-    { name: 'Munition 9mm',      short: '9mm',     radius: 16,  bubble: ['#fff8d6', '#ffe28a'] },
-    { name: 'Flashbang',         short: 'Flash',   radius: 21,  bubble: ['#e6fff1', '#a8ecc8'] },
-    { name: 'Glock',             short: 'Glock',   radius: 27,  bubble: ['#ffeaf1', '#ffb8cf'] },
-    { name: 'Revolver Magnum',   short: 'Magnum',  radius: 35,  bubble: ['#f2ecff', '#cdbcff'] },
-    { name: 'MP5',               short: 'MP5',     radius: 43,  bubble: ['#e8f6ff', '#a9d8ff'] },
-    { name: 'HK416',             short: 'HK416',   radius: 52,  bubble: ['#fff0e2', '#ffc99a'] },
-    { name: 'Fusil à pompe M4',  short: 'Pompe',   radius: 61,  bubble: ['#ffece9', '#ffaea4'] },
-    { name: 'Sniper .50 BMG',    short: '.50 BMG', radius: 72,  bubble: ['#eef1ff', '#b6c2ff'] },
-    { name: 'Minigun',           short: 'Minigun', radius: 86,  bubble: ['#fff3df', '#ffcf86'] },
-    { name: 'RPG-7',             short: 'RPG-7',   radius: 103, bubble: ['#f9ffe6', '#d6f09a'] },
-    { name: 'Mini-Tank Graal',   short: 'Graal',   radius: 124, bubble: ['#fffbe6', '#ffd7f0'] }
-  ];
+  // Étendue des hitboxes (repère du dessin) : utile pour viser et borner.
+  ITEMS.forEach(it => {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const h of it.hit) {
+      if (h[0] === 'c') {
+        x0 = Math.min(x0, h[1] - h[3]); x1 = Math.max(x1, h[1] + h[3]);
+        y0 = Math.min(y0, h[2] - h[3]); y1 = Math.max(y1, h[2] + h[3]);
+      } else {
+        const [, x, y, w, hh, , ang = 0] = h;
+        const a = ang * Math.PI / 180, cx = x + w / 2, cy = y + hh / 2;
+        const ex = Math.abs(w / 2 * Math.cos(a)) + Math.abs(hh / 2 * Math.sin(a));
+        const ey = Math.abs(w / 2 * Math.sin(a)) + Math.abs(hh / 2 * Math.cos(a));
+        x0 = Math.min(x0, cx - ex); x1 = Math.max(x1, cx + ex);
+        y0 = Math.min(y0, cy - ey); y1 = Math.max(y1, cy + ey);
+      }
+    }
+    it.hitBox = { x0, y0, x1, y1 };
+    it.scale = it.size / Math.max(x1 - x0, y1 - y0);     // unités monde par unité de dessin
+    it.view = { x: x0 - 20, y: y0 - 20, w: x1 - x0 + 40, h: y1 - y0 + 40 }; // affiné par measure()
+  });
 
-  function buildSVG(level, closed) {
+  /** Mesure la vraie boîte englobante des dessins (à appeler une fois le DOM prêt). */
+  function measure() {
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('width', '400');
+    svg.setAttribute('height', '400');
+    svg.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden';
+    document.body.appendChild(svg);
+    ITEMS.forEach(it => {
+      const g = document.createElementNS(NS, 'g');
+      g.innerHTML = it.art(false);
+      svg.appendChild(g);
+      const b = g.getBBox();
+      const m = 6;   // demi-épaisseur de contour
+      if (b.width > 0) it.view = { x: b.x - m, y: b.y - m, w: b.width + 2 * m, h: b.height + 2 * m };
+      svg.removeChild(g);
+    });
+    svg.remove();
+  }
+
+  /** SVG autonome. `square` : cadre carré (icônes) ; pw/ph : taille de rendu en pixels. */
+  function buildSVG(level, closed, square, pw, ph) {
     const it = ITEMS[level];
-    const [c1, c2] = it.bubble;
-    const rim = level === 10 ? '#f5a8d2' : shade(c2, -0.12);
-    const extra = level === 10
-      ? `<circle r="96" fill="url(#rb)" opacity=".55"/>` +
-        sparkle(-62, 40, 9) + sparkle(64, 52, 7, '#fff6b0') + sparkle(-70, -20, 6, '#fff6b0') + sparkle(70, -64, 8)
-      : '';
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-100 -100 200 200" width="200" height="200">
-      <defs>
-        <radialGradient id="g" cx="35%" cy="30%" r="75%">
-          <stop offset="0" stop-color="${c1}"/>
-          <stop offset="1" stop-color="${c2}"/>
-        </radialGradient>
-        <linearGradient id="rb" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#ffe27a"/><stop offset=".35" stop-color="#ffb3d9"/>
-          <stop offset=".7" stop-color="#b9c8ff"/><stop offset="1" stop-color="#a8f0d0"/>
-        </linearGradient>
-      </defs>
-      <circle r="95" fill="url(#g)" stroke="${rim}" stroke-width="5"/>
-      ${extra}
-      <ellipse cx="0" cy="62" rx="58" ry="18" fill="${shade(c2, -0.1)}" opacity=".35"/>
-      ${ART[level](closed)}
-      <ellipse cx="-42" cy="-58" rx="26" ry="12" fill="#fff" opacity=".55" transform="rotate(-35 -42 -58)"/>
-      <circle cx="-66" cy="-30" r="5" fill="#fff" opacity=".6"/>
-    </svg>`;
+    let { x, y, w, h } = it.view;
+    if (square) {
+      const s = Math.max(w, h) + 8;
+      x -= (s - w) / 2; y -= (s - h) / 2; w = h = s;
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${w} ${h}" width="${pw || w}" height="${ph || h}">${it.art(closed)}</svg>`;
   }
 
-  /** Assombrit / éclaircit une couleur hex. */
-  function shade(hex, amt) {
-    const n = parseInt(hex.slice(1), 16);
-    const f = c => Math.max(0, Math.min(255, Math.round(c + (amt < 0 ? c * amt : (255 - c) * amt))));
-    const r = f(n >> 16), g = f((n >> 8) & 255), b = f(n & 255);
-    return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
-  }
+  const svgURL = (level, closed = false, square = true, pw, ph) =>
+    'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(buildSVG(level, closed, square, pw, ph));
 
-  const svgURL = (level, closed = false) =>
-    'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(buildSVG(level, closed));
-
-  window.Sprites = { ITEMS, buildSVG, svgURL };
+  window.Sprites = { ITEMS, measure, buildSVG, svgURL };
 })();

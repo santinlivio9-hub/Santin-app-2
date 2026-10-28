@@ -388,11 +388,15 @@
       this._tone('sine', f, f * 0.6, t, 0.12, 0.06 + 0.12 * Math.min(1, strength));
     }
 
-    /** "Pop" pétillant de fusion — plus grave pour les grosses armes. */
-    pop(level = 0) {
+    /**
+     * "Pop" pétillant de fusion — plus grave pour les grosses armes.
+     * `combo` (1, 2, 3…) monte la fusion d'un demi-ton par étape de réaction en chaîne.
+     */
+    pop(level = 0, combo = 1) {
       if (!this._ok()) return;
       const t = this.ctx.currentTime;
-      const base = 820 * Math.pow(0.9, level);
+      const semi = Math.pow(2, (combo - 1) / 12);
+      const base = 820 * Math.pow(0.9, level) * semi;
       this._tone('sine', base * 0.6, base * 1.5, t, 0.14, 0.34);
       this._tone('triangle', base * 1.2, base * 2.2, t + 0.03, 0.1, 0.08);
       this._burst(t, 3200, 'highpass', 0.12, 0.07);
@@ -403,6 +407,73 @@
         this._tone('sine', f, f * 1.15, tt, 0.035, 0.035 + Math.random() * 0.03);
       }
       if (level >= 5) this._tone('sine', base * 0.35, base * 0.22, t, 0.35, 0.18);
+      // Note musicale de la fusion : grave pour les grosses armes, +1 demi-ton par combo.
+      const note = 81 - level + (combo - 1);
+      this._tone('triangle', mtof(note), mtof(note), t + 0.04, 0.45, 0.07 + Math.min(0.05, (combo - 1) * 0.015));
+      this._tone('sine', mtof(note + 12), mtof(note + 12), t + 0.04, 0.3, 0.03);
+    }
+
+    /** Échange swap : petit "whoosh" aller-retour. */
+    swap() {
+      if (!this._ok()) return;
+      const t = this.ctx.currentTime;
+      const n = this.ctx.createBufferSource();
+      n.buffer = this.noise;
+      const bp = this.ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = 2.5;
+      bp.frequency.setValueAtTime(500, t);
+      bp.frequency.exponentialRampToValueAtTime(3500, t + 0.14);
+      bp.frequency.exponentialRampToValueAtTime(700, t + 0.3);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.22, t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+      n.connect(bp).connect(g).connect(this.sfxBus);
+      n.start(t, Math.random());
+      n.stop(t + 0.35);
+      this._tone('sine', 660, 990, t + 0.02, 0.1, 0.08);
+      this._tone('sine', 990, 660, t + 0.16, 0.1, 0.08);
+    }
+
+    /** Explosion C4 : boum rond et étouffé, version cartoon. */
+    boom() {
+      if (!this._ok()) return;
+      const t = this.ctx.currentTime;
+      this._tone('sine', 140, 38, t, 0.6, 0.5);
+      this._tone('triangle', 90, 45, t, 0.35, 0.2);
+      const n = this.ctx.createBufferSource();
+      n.buffer = this.noise;
+      const lp = this.ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.setValueAtTime(2400, t);
+      lp.frequency.exponentialRampToValueAtTime(200, t + 0.6);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.4, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+      n.connect(lp).connect(g).connect(this.sfxBus);
+      n.start(t, Math.random());
+      n.stop(t + 0.75);
+      for (let i = 0; i < 8; i++) {
+        const f = 1500 + Math.random() * 2500;
+        this._tone('sine', f, f * 0.8, t + 0.08 + Math.random() * 0.3, 0.05, 0.03);
+      }
+    }
+
+    /** Secousse : grondement doux. */
+    rumble() {
+      if (!this._ok()) return;
+      const t = this.ctx.currentTime;
+      for (let i = 0; i < 5; i++) this._tone('sine', 70 + Math.random() * 30, 50, t + i * 0.08, 0.18, 0.18);
+      this._burst(t, 300, 'lowpass', 0.5, 0.15);
+    }
+
+    /** Petit "bip" d'interface pour armer le C4. */
+    arm() {
+      if (!this._ok()) return;
+      const t = this.ctx.currentTime;
+      this._tone('square', 1200, 1200, t, 0.05, 0.04);
+      this._tone('square', 1600, 1600, t + 0.08, 0.05, 0.04);
     }
 
     /** Jingle "nouvelle arme débloquée". */

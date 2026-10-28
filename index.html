@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="pastel">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#f6eefe">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Chibi Arsenal">
   <meta name="format-detection" content="telephone=no">
   <link rel="manifest" href="manifest.webmanifest">
@@ -18,8 +18,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Applique le thème mémorisé avant le premier rendu (pas de flash).
+    try { var t = JSON.parse(localStorage.getItem('chibiArsenal.v1') || '{}').theme; if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
 </head>
 <body>
+  <div id="bg" aria-hidden="true"></div>
   <div id="app">
     <!-- ================= HUD ================= -->
     <header class="hud">
@@ -35,6 +40,9 @@
         </div>
       </div>
       <div class="hud-btns">
+        <button class="icon-btn" id="btn-theme" aria-label="Thèmes">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1.1-1.6-1.1-2.6 0-.8.6-1.4 1.5-1.4h2.1A4.7 4.7 0 0 0 21 10.8C21 6.5 17 3 12 3z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><circle cx="7.5" cy="11" r="1.7" fill="currentColor"/><circle cx="10.2" cy="7" r="1.7" fill="currentColor"/><circle cx="14.6" cy="7" r="1.7" fill="currentColor"/></svg>
+        </button>
         <button class="icon-btn" id="btn-music" aria-label="Musique" aria-pressed="true">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.6" fill="currentColor"/><circle cx="16.5" cy="16" r="2.6" fill="currentColor"/></svg>
         </button>
@@ -55,13 +63,37 @@
           <span>Suivant</span>
           <img id="next-img" alt="" draggable="false">
         </div>
+        <div class="combo-badge" id="combo" aria-live="polite"></div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
+        <div class="hint" id="hint">
+          <span>Touche une arme pour la faire sauter</span>
+          <button type="button" id="hint-cancel" aria-label="Annuler le C4">✕</button>
+        </div>
       </div>
     </main>
 
+    <!-- ================= Pouvoirs tactiques ================= -->
+    <nav class="powers" aria-label="Pouvoirs tactiques">
+      <button class="power" id="pw-swap" type="button">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 11h17l-4-4M26 21H9l4 4" fill="none" stroke="#3d2c4e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11h17l-4-4M26 21H9l4 4" fill="none" stroke="#7cc8ff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="power-name">Swap</span>
+        <span class="count">1</span>
+      </button>
+      <button class="power" id="pw-c4" type="button">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="10" width="22" height="16" rx="5" fill="#ffb36b" stroke="#3d2c4e" stroke-width="2.4"/><rect x="9" y="14" width="10" height="5" rx="2" fill="#3d2c4e"/><circle cx="23" cy="16.5" r="2" fill="#ff5d8f"/><path d="M16 10c0-4 3-6 6-5" fill="none" stroke="#3d2c4e" stroke-width="2.4" stroke-linecap="round"/><path d="M22.5 2.5l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z" fill="#ffd34e" stroke="#3d2c4e" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <span class="power-name">C4</span>
+        <span class="count">1</span>
+      </button>
+      <button class="power" id="pw-shake" type="button">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="10" y="4" width="12" height="24" rx="4" fill="#cdbcff" stroke="#3d2c4e" stroke-width="2.4"/><circle cx="16" cy="23.5" r="1.6" fill="#3d2c4e"/><path d="M5 11q-2 5 0 10M27 11q2 5 0 10" fill="none" stroke="#3d2c4e" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <span class="power-name">Secousse</span>
+        <span class="count">1</span>
+      </button>
+    </nav>
+
     <!-- ================= Arbre d'évolution ================= -->
     <footer class="evo-wrap">
-      <div class="evo-bar" id="evo" aria-label="Arbre d'évolution"></div>
+      <div class="evo-bar" id="evo" aria-label="Arbre d'évolution — touche une arme pour voir sa fiche"></div>
     </footer>
   </div>
 
@@ -76,6 +108,10 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
         Jouer
       </button>
+      <div class="btn-row">
+        <button class="btn ghost" id="btn-codex-start">Armurerie</button>
+        <button class="btn ghost" id="btn-themes-start">Thèmes</button>
+      </div>
       <p class="start-best">Record : <b id="start-best">0</b></p>
     </div>
   </section>
@@ -92,6 +128,16 @@
         <label class="switch-row">
           <span>Bruitages</span>
           <input type="checkbox" id="opt-sfx" checked>
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+        <label class="switch-row">
+          <span>Vibrations</span>
+          <input type="checkbox" id="opt-haptics" checked>
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+        <label class="switch-row">
+          <span>Secouer l'appareil = Secousse</span>
+          <input type="checkbox" id="opt-motion">
           <span class="switch" aria-hidden="true"></span>
         </label>
       </div>
@@ -118,6 +164,46 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4.5H9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Rejouer
       </button>
+    </div>
+  </section>
+
+  <!-- Codex : fiche "carte postale" de chaque arme -->
+  <section class="overlay" id="menu-codex" aria-hidden="true">
+    <div class="codex-wrap">
+      <article class="postcard" id="codex-card">
+        <header class="pc-head">
+          <span class="pc-num" id="codex-num">N°01</span>
+          <span class="pc-brand">Armurerie Chibi</span>
+          <div class="pc-stamp"><img id="codex-stamp" alt=""></div>
+        </header>
+        <div class="pc-art">
+          <div class="pc-postmark" aria-hidden="true">FUSION<br>TACTIQUE</div>
+          <img id="codex-img" alt="">
+        </div>
+        <h2 class="pc-name" id="codex-name"></h2>
+        <div class="pc-stars" id="codex-stars" aria-hidden="true"></div>
+        <p class="pc-lore" id="codex-lore"></p>
+        <div class="pc-stats" id="codex-stats"></div>
+      </article>
+      <div class="codex-nav">
+        <button class="icon-btn" id="codex-prev" aria-label="Arme précédente">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span id="codex-progress"></span>
+        <button class="icon-btn" id="codex-next" aria-label="Arme suivante">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <button class="btn ghost" id="codex-close">Fermer</button>
+    </div>
+  </section>
+
+  <!-- Sélecteur de thèmes -->
+  <section class="overlay" id="menu-themes" aria-hidden="true">
+    <div class="glass panel">
+      <h2>Thèmes</h2>
+      <div class="theme-list" id="theme-list"></div>
+      <button class="btn ghost" id="themes-close">Fermer</button>
     </div>
   </section>
 
