@@ -35,7 +35,7 @@ Seules les 5 premières armes tombent du chariot. Deux Graals qui se touchent di
 - Meilleur score, armes découvertes, statistiques du codex, thème et réglages sont sauvegardés dans le `localStorage`.
 
 ## Pouvoirs tactiques
-Trois boutons sous la cuve, une charge chacun par partie, **+1 charge tous les 1000 points** (max 3) :
+Trois boutons sous la cuve, une charge chacun au départ, puis rechargés avec le score (max 2, jauge de progression sur chaque bouton) : **Swap** tous les 1500 points, **Secousse** tous les 4000, **C4** tous les 8000.
 - **Swap** : échange l'arme en main avec l'arme « Suivant ».
 - **C4** : vise et fait exploser une arme (les armes qui bloquent la ligne rouge sont marquées d'un réticule).
 - **Secousse** : secoue toute la cuve pour débloquer un empilement. Peut aussi se déclencher en secouant le téléphone (option « Secouer l'appareil » dans la pause, permission accéléromètre demandée sur iOS).

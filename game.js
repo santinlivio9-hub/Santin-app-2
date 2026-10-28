@@ -24,8 +24,9 @@
   const POINTS = [0, 2, 5, 10, 16, 25, 40, 60, 90, 130, 200];
   const GRAAL_BONUS = 500;
   const MAX_LEVEL = ITEMS.length - 1;
-  const RECHARGE_EVERY = 1000;               // points pour recharger les pouvoirs
-  const POWER_MAX = 3;
+  // Points nécessaires pour regagner une charge : le C4 et la Secousse restent rares.
+  const RECHARGE = { swap: 1500, shake: 4000, c4: 8000 };
+  const POWER_MAX = 2;
   const SQUASH = 0.15;                       // écrasement max (15 %)
   const STORE_KEY = 'chibiArsenal.v1';
   const PASTELS = ['#ffb3c8', '#ffd98a', '#a8ecc8', '#a9d8ff', '#cdbcff', '#ffc99a', '#ffffff'];
@@ -39,7 +40,7 @@
   const THEMES = {
     pastel: {
       name: 'Pastel Doux', desc: 'Dégradé apaisant, ambiance chill.', unlock: null, meta: '#f6eefe',
-      sticker: '#ffffff', halo: 'rgba(90,60,130,0.22)',
+      sticker: '#ffffff', halo: 'rgba(90,60,130,0.22)', shadow: 'rgba(90,50,140,0.22)',
       tankTop: 'rgba(255,255,255,0.22)', tankBot: 'rgba(255,255,255,0.5)',
       wall: 'rgba(255,255,255,0.95)', wallInner: 'rgba(176,150,214,0.35)', glow: null,
       reflect: 'rgba(255,255,255,0.45)', rail: 'rgba(255,255,255,0.85)', railInner: 'rgba(176,150,214,0.45)',
@@ -48,7 +49,7 @@
     },
     atelier: {
       name: 'Atelier Armurerie', desc: 'Établi en bois sombre, néons tamisés et grille d’accroche.', unlock: 5, meta: '#2b1a12',
-      sticker: '#fff3e2', halo: 'rgba(0,0,0,0.45)',
+      sticker: '#fff3e2', halo: 'rgba(0,0,0,0.45)', shadow: 'rgba(0,0,0,0.45)',
       tankTop: 'rgba(255,225,190,0.04)', tankBot: 'rgba(255,225,190,0.12)',
       wall: 'rgba(255,236,214,0.9)', wallInner: 'rgba(95,242,255,0.55)', glow: 'rgba(95,242,255,0.85)',
       reflect: 'rgba(255,240,220,0.18)', rail: 'rgba(255,190,120,0.75)', railInner: 'rgba(90,50,30,0.6)',
@@ -57,7 +58,7 @@
     },
     blueprint: {
       name: 'Blueprint', desc: 'Schéma d’ingénieur bleu technique, traits nets.', unlock: 7, meta: '#1b4f8a',
-      sticker: '#eaf4ff', halo: 'rgba(5,30,70,0.4)',
+      sticker: '#eaf4ff', halo: 'rgba(5,30,70,0.4)', shadow: 'rgba(5,25,60,0.45)',
       tankTop: 'rgba(255,255,255,0.03)', tankBot: 'rgba(255,255,255,0.09)',
       wall: 'rgba(234,244,255,0.95)', wallInner: 'rgba(120,180,255,0.6)', glow: null, grid: true,
       reflect: 'rgba(255,255,255,0.18)', rail: 'rgba(234,244,255,0.85)', railInner: 'rgba(27,79,138,0.8)',
@@ -66,7 +67,7 @@
     },
     night: {
       name: 'Vision Nocturne', desc: 'Vert phosphore épuré, lignes de balayage.', unlock: 8, meta: '#04140a',
-      sticker: '#c8ffd4', halo: 'rgba(0,0,0,0.5)',
+      sticker: '#c8ffd4', halo: 'rgba(0,0,0,0.5)', shadow: 'rgba(0,0,0,0.55)',
       tankTop: 'rgba(120,255,150,0.03)', tankBot: 'rgba(120,255,150,0.08)',
       wall: 'rgba(170,255,190,0.85)', wallInner: 'rgba(90,255,130,0.5)', glow: 'rgba(90,255,130,0.8)',
       reflect: 'rgba(170,255,190,0.15)', rail: 'rgba(140,255,170,0.7)', railInner: 'rgba(4,20,10,0.8)',
@@ -109,27 +110,30 @@
   // navigator.vibrate (Android) ; sur iOS 18+, le basculement d'un
   // <input switch> déclenche un retour haptique natif.
   const Haptics = (() => {
-    let label = null;
-    if (!('vibrate' in navigator)) {
-      label = document.createElement('label');
-      label.setAttribute('aria-hidden', 'true');
-      label.style.cssText = 'position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';
+    const canVibrate = typeof navigator.vibrate === 'function';
+    // iOS 18+ : basculer un <input switch> joue le "tic" haptique du système.
+    // Il doit être déclenché pendant un geste (toucher) pour être ressenti.
+    const tick = () => {
+      const label = document.createElement('label');
+      label.ariaHidden = 'true';
+      label.style.display = 'none';
       const input = document.createElement('input');
       input.type = 'checkbox';
       input.setAttribute('switch', '');
-      input.tabIndex = -1;
       label.appendChild(input);
-      document.body.appendChild(label);
-    }
+      document.head.appendChild(label);
+      label.click();
+      label.remove();
+    };
     return {
       pulse(pattern) {
         if (!store.data.haptics) return;
-        if (navigator.vibrate) {
+        if (canVibrate) {
           try { navigator.vibrate(pattern); } catch (e) { /* ignore */ }
-        } else if (label) {
-          label.click();
-          if (Array.isArray(pattern) && pattern.length > 2) setTimeout(() => label.click(), pattern[0] + pattern[1]);
+          return;
         }
+        tick();
+        if (Array.isArray(pattern) && pattern.length > 2) setTimeout(tick, pattern[0] + pattern[1]);
       }
     };
   })();
@@ -179,7 +183,13 @@
     g.drawImage(halo, 0, 0);
     g.drawImage(sticker, 0, 0);
     g.drawImage(img, mpx, mpx, wpx, hpx);
-    return { c, m: mpx / px };
+    // Ombre portée : silhouette sombre, dessinée décalée sous chaque arme.
+    const shadow = mk(), shg = shadow.getContext('2d');
+    shg.drawImage(sticker, 0, 0);
+    shg.globalCompositeOperation = 'source-in';
+    shg.fillStyle = T.shadow;
+    shg.fillRect(0, 0, W, H);
+    return { c, s: shadow, m: mpx / px };
   }
 
   // ------------------------------------------------------------- layout
@@ -202,7 +212,8 @@
   let engine, items, mergeQueue;
   let gt = 0, rt = 0;      // temps de jeu / temps réel (animations)
   let acc = 0;
-  let score = 0, shownScore = 0, nextRecharge = RECHARGE_EVERY;
+  let score = 0, shownScore = 0;
+  const nextCharge = { ...RECHARGE };
   let dangerT = 0, lastTick = 0;
   let maxLevel = -1, reached = [];
   let shake = 0;
@@ -399,7 +410,8 @@
     mergeQueue = [];
     createWorld();
     gt = 0; acc = 0;
-    score = 0; shownScore = 0; nextRecharge = RECHARGE_EVERY;
+    score = 0; shownScore = 0;
+    Object.assign(nextCharge, RECHARGE);
     dangerT = 0; lastTick = 0;
     shake = 0;
     particles = []; texts = []; ghosts = [];
@@ -487,14 +499,15 @@
     elScore.classList.remove('bump');
     void elScore.offsetWidth;
     elScore.classList.add('bump');
-    if (score >= nextRecharge) {
-      while (score >= nextRecharge) {
-        nextRecharge += RECHARGE_EVERY;
-        for (const k in powers) powers[k] = Math.min(POWER_MAX, powers[k] + 1);
+    const gained = [];
+    for (const k in RECHARGE) {
+      while (score >= nextCharge[k]) {
+        nextCharge[k] += RECHARGE[k];
+        if (powers[k] < POWER_MAX) { powers[k]++; gained.push(k); }
       }
-      updatePowers(true);
-      setTimeout(() => toast(null, 'Pouvoirs rechargés : +1 !', 'power'), 400);
     }
+    updatePowers(gained);
+    if (gained.length) setTimeout(() => toast(null, 'Recharge : +1 ' + gained.map(k => POWER_NAMES[k]).join(', +1 '), 'power'), 400);
   }
 
   function physicsStep() {
@@ -703,6 +716,7 @@
 
     drawTankBack();
     if (items && raster.length) {
+      for (const it of items.values()) drawItem(it, true);
       for (const it of items.values()) drawItem(it);
       for (const g of ghosts) drawGhost(g);
     }
@@ -836,19 +850,20 @@
     ctx.stroke();
   }
 
-  /** Dessine le sprite d'une arme, origine du dessin en (0, 0). */
-  function blit(level, closed) {
+  /** Dessine le sprite d'une arme (ou son ombre), origine du dessin en (0, 0). */
+  function blit(level, closed, shadow) {
     const r = raster[level] && raster[level][closed ? 1 : 0];
     if (!r) return;
     const it = ITEMS[level], s = it.scale, v = it.view;
-    ctx.drawImage(r.c, v.x * s - r.m, v.y * s - r.m, v.w * s + 2 * r.m, v.h * s + 2 * r.m);
+    ctx.drawImage(shadow ? r.s : r.c, v.x * s - r.m, v.y * s - r.m, v.w * s + 2 * r.m, v.h * s + 2 * r.m);
   }
 
-  function drawItem(it) {
+  function drawItem(it, shadow) {
     const b = it.body, s = it.sq;
     const vis = (it.spawn < 1 ? 0.55 + 0.45 * elasticOut(it.spawn) : 1) * (1 + 0.012 * Math.sin(rt * 2.3 + it.phase));
     ctx.save();
-    ctx.translate(b.position.x, b.position.y);
+    // L'ombre est décalée vers le bas dans le repère monde : elle ne tourne pas avec l'arme.
+    ctx.translate(b.position.x + (shadow ? 2 : 0), b.position.y + (shadow ? 6 : 0));
     if (Math.abs(s.d) > 0.003) {
       ctx.rotate(s.a);
       ctx.scale(1 - s.d, 1 + s.d * 0.9);
@@ -857,7 +872,7 @@
     ctx.rotate(b.angle);
     ctx.scale(vis, vis);
     ctx.translate(it.off.x, it.off.y);
-    blit(it.level, rt < it.blinkUntil);
+    blit(it.level, rt < it.blinkUntil, shadow);
     ctx.restore();
   }
 
@@ -1053,6 +1068,9 @@
       }
       if (dropper.appear < 1) dropper.appear = Math.min(1, dropper.appear + dt / 0.4);
       dropper.tx = clampAim(dropper.tx, dropper.level);
+      // La pastille "Suivant" s'efface quand on vise juste en dessous.
+      const under = dropper.x + geo(dropper.level).hw > VIEW_W - 120;
+      if (under !== elNextPill.classList.contains('faded')) elNextPill.classList.toggle('faded', under);
     }
     if (state !== 'pause') {
       if (items) updateSquish(dt);
@@ -1163,12 +1181,19 @@
     elNextPill.classList.add('swap');
   }
 
-  function updatePowers(flash) {
+  const POWER_NAMES = { swap: 'Swap', c4: 'C4', shake: 'Secousse' };
+
+  /** Compteurs + jauge de progression vers la prochaine charge. */
+  function updatePowers(flash = []) {
     for (const k of ['swap', 'c4', 'shake']) {
       const b = $('pw-' + k);
       b.querySelector('.count').textContent = powers[k];
       b.disabled = powers[k] <= 0;
-      if (flash) {
+      const full = powers[k] >= POWER_MAX;
+      const done = full ? 1 : 1 - (nextCharge[k] - score) / RECHARGE[k];
+      b.querySelector('.meter i').style.width = (Math.max(0, Math.min(1, done)) * 100).toFixed(1) + '%';
+      b.classList.toggle('full', full);
+      if (flash.includes(k)) {
         b.classList.remove('flash');
         void b.offsetWidth;
         b.classList.add('flash');

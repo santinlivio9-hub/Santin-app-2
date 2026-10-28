@@ -28,16 +28,13 @@
   <div id="app">
     <!-- ================= HUD ================= -->
     <header class="hud">
-      <div class="hud-scores">
-        <div class="score-box" id="score-box">
-          <span class="label">Score</span>
-          <span class="value" id="score">0</span>
-        </div>
-        <div class="best-box">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0zM5 5H3v1a4 4 0 0 0 4 4M19 5h2v1a4 4 0 0 1-4 4M12 12v4m-4 4h8l-1-4H9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
-          <span class="label">Record</span>
-          <span class="value" id="best">0</span>
-        </div>
+      <div class="score-box" id="score-box">
+        <span class="label">Score</span>
+        <span class="value" id="score">0</span>
+        <span class="best-line" aria-label="Record">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0zM5 5H3v1a4 4 0 0 0 4 4M19 5h2v1a4 4 0 0 1-4 4M12 12v4m-4 4h8l-1-4H9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <span id="best">0</span>
+        </span>
       </div>
       <div class="hud-btns">
         <button class="icon-btn" id="btn-theme" aria-label="Thèmes">
@@ -78,16 +75,19 @@
         <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 11h17l-4-4M26 21H9l4 4" fill="none" stroke="#3d2c4e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11h17l-4-4M26 21H9l4 4" fill="none" stroke="#7cc8ff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="power-name">Swap</span>
         <span class="count">1</span>
+        <span class="meter" aria-hidden="true"><i></i></span>
       </button>
       <button class="power" id="pw-c4" type="button">
         <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="10" width="22" height="16" rx="5" fill="#ffb36b" stroke="#3d2c4e" stroke-width="2.4"/><rect x="9" y="14" width="10" height="5" rx="2" fill="#3d2c4e"/><circle cx="23" cy="16.5" r="2" fill="#ff5d8f"/><path d="M16 10c0-4 3-6 6-5" fill="none" stroke="#3d2c4e" stroke-width="2.4" stroke-linecap="round"/><path d="M22.5 2.5l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z" fill="#ffd34e" stroke="#3d2c4e" stroke-width="1.2" stroke-linejoin="round"/></svg>
         <span class="power-name">C4</span>
         <span class="count">1</span>
+        <span class="meter" aria-hidden="true"><i></i></span>
       </button>
       <button class="power" id="pw-shake" type="button">
         <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="10" y="4" width="12" height="24" rx="4" fill="#cdbcff" stroke="#3d2c4e" stroke-width="2.4"/><circle cx="16" cy="23.5" r="1.6" fill="#3d2c4e"/><path d="M5 11q-2 5 0 10M27 11q2 5 0 10" fill="none" stroke="#3d2c4e" stroke-width="2.4" stroke-linecap="round"/></svg>
         <span class="power-name">Secousse</span>
         <span class="count">1</span>
+        <span class="meter" aria-hidden="true"><i></i></span>
       </button>
     </nav>
 
